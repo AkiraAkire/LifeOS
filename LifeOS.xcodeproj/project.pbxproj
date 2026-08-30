@@ -1,0 +1,552 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000000000000000000001 /* LifeOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* LifeOSApp.swift */; };
+		A10000000000000000000002 /* AppNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* AppNavigation.swift */; };
+		A10000000000000000000003 /* ModelContainerFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000013 /* ModelContainerFactory.swift */; };
+		A10000000000000000000004 /* AppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000014 /* AppConfiguration.swift */; };
+		A10000000000000000000005 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000015 /* RootView.swift */; };
+		A10000000000000000000006 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000016 /* SidebarView.swift */; };
+		A10000000000000000000007 /* TodayPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000017 /* TodayPlaceholderView.swift */; };
+		A10000000000000000000008 /* PlaceholderFeatureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000018 /* PlaceholderFeatureView.swift */; };
+		B10000000000000000000001 /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000011 /* Enums.swift */; };
+		B10000000000000000000002 /* Task.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000012 /* Task.swift */; };
+		B10000000000000000000003 /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000013 /* Event.swift */; };
+		B10000000000000000000004 /* Course.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000014 /* Course.swift */; };
+		B10000000000000000000005 /* CourseSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000015 /* CourseSession.swift */; };
+		B10000000000000000000006 /* Assignment.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000016 /* Assignment.swift */; };
+		B10000000000000000000007 /* Exam.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000017 /* Exam.swift */; };
+		B10000000000000000000008 /* JournalEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000018 /* JournalEntry.swift */; };
+		B10000000000000000000009 /* Tag.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000019 /* Tag.swift */; };
+		B20000000000000000000001 /* CoreModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000011 /* CoreModelTests.swift */; };
+		B20000000000000000000002 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B20000000000000000000013 /* XCTest.framework */; };
+		B30000000000000000000001 /* FeatureViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30000000000000000000011 /* FeatureViews.swift */; };
+		B30000000000000000000002 /* ScheduleAggregationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30000000000000000000012 /* ScheduleAggregationService.swift */; };
+		B40000000000000000000001 /* ManualTestDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40000000000000000000011 /* ManualTestDataService.swift */; };
+		B40000000000000000000002 /* manual-test-dataset.json in Resources */ = {isa = PBXBuildFile; fileRef = B40000000000000000000012 /* manual-test-dataset.json */; };
+		B50000000000000000000001 /* LifeOSIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = B50000000000000000000011 /* LifeOSIcon.icns */; };
+		B60000000000000000000001 /* InboxCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B60000000000000000000011 /* InboxCaptureService.swift */; };
+		B70000000000000000000001 /* Project.swift in Sources */ = {isa = PBXBuildFile; fileRef = B70000000000000000000011 /* Project.swift */; };
+		B80000000000000000000001 /* Habit.swift in Sources */ = {isa = PBXBuildFile; fileRef = B80000000000000000000011 /* Habit.swift */; };
+		D10000000000000000000001 /* BackupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D10000000000000000000011 /* BackupService.swift */; };
+		B90000000000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B90000000000000000000011 /* Assets.xcassets */; };
+		C10000000000000000000001 /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000011 /* AppColors.swift */; };
+		C10000000000000000000002 /* AppSpacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000012 /* AppSpacing.swift */; };
+		C10000000000000000000003 /* AppRadius.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000013 /* AppRadius.swift */; };
+		C10000000000000000000004 /* AppTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000014 /* AppTypography.swift */; };
+		C10000000000000000000005 /* LifeComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000015 /* LifeComponents.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A10000000000000000000011 /* LifeOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeOSApp.swift; sourceTree = "<group>"; };
+		A10000000000000000000012 /* AppNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNavigation.swift; sourceTree = "<group>"; };
+		A10000000000000000000013 /* ModelContainerFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelContainerFactory.swift; sourceTree = "<group>"; };
+		A10000000000000000000014 /* AppConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfiguration.swift; sourceTree = "<group>"; };
+		A10000000000000000000015 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		A10000000000000000000016 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
+		A10000000000000000000017 /* TodayPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayPlaceholderView.swift; sourceTree = "<group>"; };
+		A10000000000000000000018 /* PlaceholderFeatureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderFeatureView.swift; sourceTree = "<group>"; };
+		A10000000000000000000019 /* LifeOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LifeOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B10000000000000000000011 /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
+		B10000000000000000000012 /* Task.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Task.swift; sourceTree = "<group>"; };
+		B10000000000000000000013 /* Event.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
+		B10000000000000000000014 /* Course.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Course.swift; sourceTree = "<group>"; };
+		B10000000000000000000015 /* CourseSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseSession.swift; sourceTree = "<group>"; };
+		B10000000000000000000016 /* Assignment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Assignment.swift; sourceTree = "<group>"; };
+		B10000000000000000000017 /* Exam.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Exam.swift; sourceTree = "<group>"; };
+		B10000000000000000000018 /* JournalEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntry.swift; sourceTree = "<group>"; };
+		B10000000000000000000019 /* Tag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tag.swift; sourceTree = "<group>"; };
+		B20000000000000000000011 /* CoreModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreModelTests.swift; sourceTree = "<group>"; };
+		B20000000000000000000012 /* LifeOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LifeOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B20000000000000000000013 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
+		B30000000000000000000011 /* FeatureViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureViews.swift; sourceTree = "<group>"; };
+		B30000000000000000000012 /* ScheduleAggregationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleAggregationService.swift; sourceTree = "<group>"; };
+		B40000000000000000000011 /* ManualTestDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualTestDataService.swift; sourceTree = "<group>"; };
+		B40000000000000000000012 /* manual-test-dataset.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "manual-test-dataset.json"; sourceTree = "<group>"; };
+		B50000000000000000000011 /* LifeOSIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = LifeOSIcon.icns; sourceTree = "<group>"; };
+		B60000000000000000000011 /* InboxCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxCaptureService.swift; sourceTree = "<group>"; };
+		B70000000000000000000011 /* Project.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Project.swift; sourceTree = "<group>"; };
+		B80000000000000000000011 /* Habit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Habit.swift; sourceTree = "<group>"; };
+		D10000000000000000000011 /* BackupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupService.swift; sourceTree = "<group>"; };
+		D20000000000000000000011 /* LifeOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LifeOS.entitlements; sourceTree = "<group>"; };
+		B90000000000000000000011 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		C10000000000000000000011 /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
+		C10000000000000000000012 /* AppSpacing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSpacing.swift; sourceTree = "<group>"; };
+		C10000000000000000000013 /* AppRadius.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRadius.swift; sourceTree = "<group>"; };
+		C10000000000000000000014 /* AppTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTypography.swift; sourceTree = "<group>"; };
+		C10000000000000000000015 /* LifeComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeComponents.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		A10000000000000000000020 = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000021 /* LifeOS */,
+				B20000000000000000000014 /* LifeOSTests */,
+				B20000000000000000000015 /* Frameworks */,
+				A10000000000000000000022 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A10000000000000000000021 /* LifeOS */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000023 /* App */,
+				A10000000000000000000024 /* Models */,
+				A10000000000000000000025 /* Views */,
+				C10000000000000000000016 /* DesignSystem */,
+				B30000000000000000000014 /* Services */,
+				A10000000000000000000029 /* Resources */,
+			);
+			path = LifeOS;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000022 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000019 /* LifeOS.app */,
+				B20000000000000000000012 /* LifeOSTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000023 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000011 /* LifeOSApp.swift */,
+				A10000000000000000000012 /* AppNavigation.swift */,
+				A10000000000000000000013 /* ModelContainerFactory.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000024 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				B70000000000000000000011 /* Project.swift */,
+				B80000000000000000000011 /* Habit.swift */,
+				A10000000000000000000014 /* AppConfiguration.swift */,
+				B10000000000000000000011 /* Enums.swift */,
+				B10000000000000000000012 /* Task.swift */,
+				B10000000000000000000013 /* Event.swift */,
+				B10000000000000000000014 /* Course.swift */,
+				B10000000000000000000015 /* CourseSession.swift */,
+				B10000000000000000000016 /* Assignment.swift */,
+				B10000000000000000000017 /* Exam.swift */,
+				B10000000000000000000018 /* JournalEntry.swift */,
+				B10000000000000000000019 /* Tag.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000025 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000026 /* Root */,
+				A10000000000000000000027 /* Today */,
+				A10000000000000000000028 /* Shared */,
+				B30000000000000000000013 /* Features */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000026 /* Root */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000015 /* RootView.swift */,
+				A10000000000000000000016 /* SidebarView.swift */,
+			);
+			path = Root;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000027 /* Today */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000017 /* TodayPlaceholderView.swift */,
+			);
+			path = Today;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000028 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000018 /* PlaceholderFeatureView.swift */,
+				C10000000000000000000015 /* LifeComponents.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		C10000000000000000000016 /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				C10000000000000000000011 /* AppColors.swift */,
+				C10000000000000000000012 /* AppSpacing.swift */,
+				C10000000000000000000013 /* AppRadius.swift */,
+				C10000000000000000000014 /* AppTypography.swift */,
+			);
+			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000029 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				B40000000000000000000012 /* manual-test-dataset.json */,
+				B50000000000000000000011 /* LifeOSIcon.icns */,
+				B90000000000000000000011 /* Assets.xcassets */,
+				D20000000000000000000011 /* LifeOS.entitlements */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		B30000000000000000000013 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				B30000000000000000000011 /* FeatureViews.swift */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		B30000000000000000000014 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				B30000000000000000000012 /* ScheduleAggregationService.swift */,
+				B40000000000000000000011 /* ManualTestDataService.swift */,
+				B60000000000000000000011 /* InboxCaptureService.swift */,
+				D10000000000000000000011 /* BackupService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		B20000000000000000000014 /* LifeOSTests */ = {
+			isa = PBXGroup;
+			children = (
+				B20000000000000000000011 /* CoreModelTests.swift */,
+			);
+			path = LifeOSTests;
+			sourceTree = "<group>";
+		};
+		B20000000000000000000015 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				B20000000000000000000013 /* XCTest.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A10000000000000000000030 /* LifeOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000000000000000000031 /* Build configuration list for PBXNativeTarget "LifeOS" */;
+			buildPhases = (
+				A10000000000000000000032 /* Sources */,
+				A10000000000000000000033 /* Frameworks */,
+				A10000000000000000000034 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LifeOS;
+			productName = LifeOS;
+			productReference = A10000000000000000000019 /* LifeOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+		B20000000000000000000022 /* LifeOSTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B20000000000000000000023 /* Build configuration list for PBXNativeTarget "LifeOSTests" */;
+			buildPhases = (
+				B20000000000000000000020 /* Sources */,
+				B20000000000000000000021 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B20000000000000000000027 /* PBXTargetDependency */,
+			);
+			name = LifeOSTests;
+			productName = LifeOSTests;
+			productReference = B20000000000000000000012 /* LifeOSTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A10000000000000000000035 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					A10000000000000000000030 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = A10000000000000000000036 /* Build configuration list for PBXProject "LifeOS" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				"zh-Hans",
+			);
+			mainGroup = A10000000000000000000020;
+			productRefGroup = A10000000000000000000022 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A10000000000000000000030 /* LifeOS */,
+				B20000000000000000000022 /* LifeOSTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXContainerItemProxy section */
+		B20000000000000000000026 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A10000000000000000000035 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A10000000000000000000030;
+			remoteInfo = LifeOS;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXTargetDependency section */
+		B20000000000000000000027 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A10000000000000000000030 /* LifeOS */;
+			targetProxy = B20000000000000000000026 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A10000000000000000000034 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B40000000000000000000002 /* manual-test-dataset.json in Resources */,
+				B50000000000000000000001 /* LifeOSIcon.icns in Resources */,
+				B90000000000000000000001 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A10000000000000000000032 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000001 /* LifeOSApp.swift in Sources */,
+				A10000000000000000000002 /* AppNavigation.swift in Sources */,
+				A10000000000000000000003 /* ModelContainerFactory.swift in Sources */,
+				A10000000000000000000004 /* AppConfiguration.swift in Sources */,
+				A10000000000000000000005 /* RootView.swift in Sources */,
+				A10000000000000000000006 /* SidebarView.swift in Sources */,
+				A10000000000000000000007 /* TodayPlaceholderView.swift in Sources */,
+				A10000000000000000000008 /* PlaceholderFeatureView.swift in Sources */,
+				B10000000000000000000001 /* Enums.swift in Sources */,
+				B10000000000000000000002 /* Task.swift in Sources */,
+				B10000000000000000000003 /* Event.swift in Sources */,
+				B10000000000000000000004 /* Course.swift in Sources */,
+				B10000000000000000000005 /* CourseSession.swift in Sources */,
+				B10000000000000000000006 /* Assignment.swift in Sources */,
+				B10000000000000000000007 /* Exam.swift in Sources */,
+				B10000000000000000000008 /* JournalEntry.swift in Sources */,
+				B10000000000000000000009 /* Tag.swift in Sources */,
+				B30000000000000000000001 /* FeatureViews.swift in Sources */,
+				B30000000000000000000002 /* ScheduleAggregationService.swift in Sources */,
+				B40000000000000000000001 /* ManualTestDataService.swift in Sources */,
+				B60000000000000000000001 /* InboxCaptureService.swift in Sources */,
+				B70000000000000000000001 /* Project.swift in Sources */,
+				B80000000000000000000001 /* Habit.swift in Sources */,
+				D10000000000000000000001 /* BackupService.swift in Sources */,
+				C10000000000000000000001 /* AppColors.swift in Sources */,
+				C10000000000000000000002 /* AppSpacing.swift in Sources */,
+				C10000000000000000000003 /* AppRadius.swift in Sources */,
+				C10000000000000000000004 /* AppTypography.swift in Sources */,
+				C10000000000000000000005 /* LifeComponents.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B20000000000000000000020 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B20000000000000000000001 /* CoreModelTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A10000000000000000000033 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B20000000000000000000021 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B20000000000000000000002 /* XCTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A10000000000000000000037 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		A10000000000000000000038 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		A10000000000000000000039 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = LifeOS/Resources/LifeOS.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = LifeOS/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lifeos.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		A10000000000000000000040 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = LifeOS/Resources/LifeOS.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = LifeOS/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lifeos.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		B20000000000000000000024 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lifeos.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LifeOS.app/Contents/MacOS/LifeOS";
+				TEST_TARGET_NAME = LifeOS;
+			};
+			name = Debug;
+		};
+		B20000000000000000000025 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lifeos.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LifeOS.app/Contents/MacOS/LifeOS";
+				TEST_TARGET_NAME = LifeOS;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A10000000000000000000031 /* Build configuration list for PBXNativeTarget "LifeOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000039 /* Debug */,
+				A10000000000000000000040 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10000000000000000000036 /* Build configuration list for PBXProject "LifeOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000037 /* Debug */,
+				A10000000000000000000038 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B20000000000000000000023 /* Build configuration list for PBXNativeTarget "LifeOSTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B20000000000000000000024 /* Debug */,
+				B20000000000000000000025 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A10000000000000000000035 /* Project object */;
+}

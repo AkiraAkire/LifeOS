@@ -1,0 +1,166 @@
+{
+  "projects": [
+    { "id": "lab-report", "name": "材料综合实验报告", "description": "完成预习、实验和最终报告。", "deadline": "2026-09-05" },
+    { "id": "semester-plan", "name": "新学期学习计划", "description": "建立课程与复习节奏。", "deadline": "2026-09-15" }
+  ],
+  "habits": [
+    { "name": "阅读", "symbolName": "book", "records": ["2026-08-22", "2026-08-23", "2026-08-24", "2026-08-26"] },
+    { "name": "背英语", "symbolName": "character.book.closed", "records": ["2026-08-24", "2026-08-25", "2026-08-26"] },
+    { "name": "运动", "symbolName": "figure.run", "records": ["2026-08-23", "2026-08-26"] }
+  ],
+  "schemaVersion": 1,
+  "title": "LifeOS 人工测试原始数据集",
+  "timeZone": "Asia/Shanghai",
+  "referenceDate": "2026-08-26",
+  "purpose": "用于手工录入或未来导入器测试；不会被应用自动加载。",
+  "timetablePeriods": [
+    { "name": "第 1 节", "startTimeMinutes": 480, "endTimeMinutes": 525 },
+    { "name": "第 2 节", "startTimeMinutes": 535, "endTimeMinutes": 580 },
+    { "name": "第 3 节", "startTimeMinutes": 610, "endTimeMinutes": 655 },
+    { "name": "第 4 节", "startTimeMinutes": 665, "endTimeMinutes": 710 },
+    { "name": "第 5 节", "startTimeMinutes": 840, "endTimeMinutes": 885 },
+    { "name": "第 6 节", "startTimeMinutes": 895, "endTimeMinutes": 940 },
+    { "name": "第 7 节", "startTimeMinutes": 970, "endTimeMinutes": 1015 },
+    { "name": "第 8 节", "startTimeMinutes": 1025, "endTimeMinutes": 1070 },
+    { "name": "第 9 节", "startTimeMinutes": 1140, "endTimeMinutes": 1185 },
+    { "name": "第 10 节", "startTimeMinutes": 1195, "endTimeMinutes": 1240 }
+  ],
+  "courses": [
+    {
+      "id": "public-health",
+      "name": "走近突发公共卫生事件",
+      "instructor": "待补充",
+      "classroom": "待补充",
+      "colorHex": "#D1008F",
+      "semester": "2026 秋季学期",
+      "note": "截图原始信息：1–16 周，课程编号 225，周一第 3–4 节。"
+    },
+    {
+      "id": "advanced-material-lab",
+      "name": "材料科学与工程高等实验 I",
+      "instructor": "李慧丽",
+      "classroom": "惠园 2 栋 405A 实验室",
+      "colorHex": "#E61E4D",
+      "semester": "2026 秋季学期",
+      "note": "截图原始信息：1–15 周，周一第 5–8 节。"
+    },
+    {
+      "id": "metal-materials-a",
+      "name": "金属材料 A",
+      "instructor": "待补充",
+      "classroom": "待补充",
+      "colorHex": "#00AEEF",
+      "semester": "2026 秋季学期",
+      "note": "截图原始信息：周一、周三第 9–10 节。"
+    },
+    {
+      "id": "circuit-electronics",
+      "name": "工程电路与电子基础",
+      "instructor": "何冠兵",
+      "classroom": "待补充",
+      "colorHex": "#A855D7",
+      "semester": "2026 秋季学期",
+      "note": "截图原始信息：周二第 3–4 节（1–15 单周），周四第 3–4 节（1–16 周）。"
+    },
+    {
+      "id": "ceramic-materials",
+      "name": "陶瓷材料",
+      "instructor": "任富增",
+      "classroom": "待补充",
+      "colorHex": "#3887C8",
+      "semester": "2026 秋季学期",
+      "note": "截图原始信息：周二第 3–4 节（2–16 双周），周五第 3–4 节。"
+    },
+    {
+      "id": "physical-education",
+      "name": "体育（足球）",
+      "instructor": "待补充",
+      "classroom": "田径场",
+      "colorHex": "#6394D8",
+      "semester": "2026 秋季学期",
+      "note": "截图原始信息：周二第 5–6 节，体育 Y-中文-足球 1 班。"
+    },
+    {
+      "id": "integrated-material-lab",
+      "name": "材料学综合实验",
+      "instructor": "李慧丽",
+      "classroom": "惠园 2 栋 407A 实验室",
+      "colorHex": "#C90086",
+      "semester": "2026 秋季学期",
+      "note": "截图原始信息：周三第 1–8 节，1–16 周。"
+    },
+    {
+      "id": "material-chemistry",
+      "name": "材料化学",
+      "instructor": "王金龙",
+      "classroom": "待补充",
+      "colorHex": "#F7A1B4",
+      "semester": "2026 秋季学期",
+      "note": "截图原始信息：周四第 7–8 节，1–16 周。"
+    },
+    {
+      "id": "sci-fi-film",
+      "name": "科幻：从小说到电影",
+      "instructor": "吴岩",
+      "classroom": "待补充",
+      "colorHex": "#80B542",
+      "semester": "2026 秋季学期",
+      "note": "截图原始信息：周二第 9–10 节，1–16 周。"
+    },
+    {
+      "id": "thin-film",
+      "name": "先进薄膜制备技术",
+      "instructor": "何颖",
+      "classroom": "待补充",
+      "colorHex": "#DA5B80",
+      "semester": "2026 秋季学期",
+      "note": "截图原始信息：周三、周五第 9–10 节。"
+    }
+  ],
+  "courseSessions": [
+    { "courseID": "public-health", "weekday": 2, "startTimeMinutes": 610, "endTimeMinutes": 710, "startDate": "2026-08-24", "endDate": "2026-12-31" },
+    { "courseID": "advanced-material-lab", "weekday": 2, "startTimeMinutes": 840, "endTimeMinutes": 1070, "startDate": "2026-08-24", "endDate": "2026-12-31" },
+    { "courseID": "metal-materials-a", "weekday": 2, "startTimeMinutes": 1140, "endTimeMinutes": 1240, "startDate": "2026-08-24", "endDate": "2026-12-31" },
+    { "courseID": "metal-materials-a", "weekday": 4, "startTimeMinutes": 1140, "endTimeMinutes": 1240, "startDate": "2026-08-24", "endDate": "2026-12-31" },
+    { "courseID": "circuit-electronics", "weekday": 3, "startTimeMinutes": 610, "endTimeMinutes": 710, "startDate": "2026-08-24", "endDate": "2026-12-31", "weekPattern": "odd" },
+    { "courseID": "circuit-electronics", "weekday": 5, "startTimeMinutes": 610, "endTimeMinutes": 710, "startDate": "2026-08-24", "endDate": "2026-12-31" },
+    { "courseID": "ceramic-materials", "weekday": 3, "startTimeMinutes": 610, "endTimeMinutes": 710, "startDate": "2026-08-24", "endDate": "2026-12-31", "weekPattern": "even" },
+    { "courseID": "ceramic-materials", "weekday": 6, "startTimeMinutes": 610, "endTimeMinutes": 710, "startDate": "2026-08-24", "endDate": "2026-12-31" },
+    { "courseID": "physical-education", "weekday": 3, "startTimeMinutes": 840, "endTimeMinutes": 940, "startDate": "2026-08-24", "endDate": "2026-12-31" },
+    { "courseID": "integrated-material-lab", "weekday": 4, "startTimeMinutes": 480, "endTimeMinutes": 1070, "startDate": "2026-08-24", "endDate": "2026-12-31" },
+    { "courseID": "material-chemistry", "weekday": 5, "startTimeMinutes": 970, "endTimeMinutes": 1070, "startDate": "2026-08-24", "endDate": "2026-12-31" },
+    { "courseID": "sci-fi-film", "weekday": 3, "startTimeMinutes": 1140, "endTimeMinutes": 1240, "startDate": "2026-08-24", "endDate": "2026-12-31" },
+    { "courseID": "thin-film", "weekday": 4, "startTimeMinutes": 1140, "endTimeMinutes": 1240, "startDate": "2026-08-24", "endDate": "2026-12-31" },
+    { "courseID": "thin-film", "weekday": 6, "startTimeMinutes": 1140, "endTimeMinutes": 1240, "startDate": "2026-08-24", "endDate": "2026-12-31" }
+  ],
+  "assignments": [
+    { "title": "材料综合实验预习报告", "courseID": "integrated-material-lab", "dueDate": "2026-08-28", "description": "完成实验原理、仪器安全与数据表格。" },
+    { "title": "工程电路习题 1", "courseID": "circuit-electronics", "dueDate": "2026-09-01", "description": "完成第 1、2 章练习题。" },
+    { "title": "先进薄膜文献阅读", "courseID": "thin-film", "dueDate": "2026-09-04", "description": "阅读两篇薄膜沉积相关论文并摘录要点。" }
+  ],
+  "exams": [
+    { "title": "工程电路单元测验", "courseID": "circuit-electronics", "startDate": "2026-09-08T10:10:00+08:00", "endDate": "2026-09-08T11:50:00+08:00", "location": "待补充", "description": "第 1–2 章。" },
+    { "title": "材料化学课堂测验", "courseID": "material-chemistry", "startDate": "2026-09-10T16:10:00+08:00", "endDate": "2026-09-10T17:50:00+08:00", "location": "待补充", "description": "无机材料基础。" }
+  ],
+  "tasks": [
+    { "title": "购买实验手套", "status": "inbox", "priority": "low", "description": "去实验耗材店购买一盒 M 码手套。" },
+    { "title": "整理材料综合实验预习报告", "status": "active", "priority": "high", "courseID": "integrated-material-lab", "plannedDate": "2026-08-26", "startDate": "2026-08-26T11:10:00+08:00", "deadline": "2026-08-28", "description": "补齐预习报告的实验步骤与安全注意事项。" },
+    { "title": "给老师发送课程咨询邮件", "status": "active", "priority": "medium", "plannedDate": "2026-08-26", "startDate": "2026-08-26T15:30:00+08:00", "deadline": "2026-08-27", "description": "咨询课程作业格式。" },
+    { "title": "晚上跑步 30 分钟", "status": "active", "priority": "low", "plannedDate": "2026-08-26", "startDate": "2026-08-26T19:30:00+08:00", "description": "测试 Today 的晚上分组。" },
+    { "title": "提交上周实验数据", "status": "active", "priority": "high", "courseID": "advanced-material-lab", "plannedDate": "2026-08-25", "deadline": "2026-08-25", "description": "用于测试“逾期”分组。" },
+    { "title": "复习工程电路第 1 章", "status": "active", "priority": "medium", "courseID": "circuit-electronics", "plannedDate": "2026-08-27", "deadline": "2026-08-27", "description": "用于测试“明天”分组。" },
+    { "title": "预约图书馆研讨室", "status": "active", "priority": "medium", "plannedDate": "2026-08-29", "deadline": "2026-08-30", "description": "用于测试“本周”分组。" },
+    { "title": "准备薄膜制备技术展示", "status": "active", "priority": "high", "courseID": "thin-film", "plannedDate": "2026-09-03", "deadline": "2026-09-04", "description": "用于测试“下周”分组。" },
+    { "title": "整理本月学习笔记", "status": "active", "priority": "low", "plannedDate": "2026-09-20", "description": "用于测试“更晚”分组。" },
+    { "title": "完成课程表整理", "status": "completed", "priority": "medium", "plannedDate": "2026-08-26", "completedAt": "2026-08-26T09:30:00+08:00", "description": "用于测试已完成列表与 Today 完成度。" }
+  ],
+  "events": [
+    { "title": "课题组组会", "startDate": "2026-08-26T14:00:00+08:00", "endDate": "2026-08-26T15:00:00+08:00", "location": "材料楼 305", "eventType": "personal", "description": "汇报实验预习与本周计划。" },
+    { "title": "实验室安全培训", "startDate": "2026-08-27T09:00:00+08:00", "endDate": "2026-08-27T10:00:00+08:00", "location": "惠园 2 栋 101", "eventType": "personal", "description": "新学期安全培训。" }
+  ],
+  "journalEntries": [
+    { "date": "2026-08-26", "mood": "good", "weather": "sunny", "quote": "把今天的事情一件件做好。", "content": "上午完成了课表整理，下午准备组会材料。", "importantEvents": "材料学综合实验；课题组组会" },
+    { "date": "2026-08-25", "mood": "neutral", "weather": "cloudy", "quote": "慢一点也没关系。", "content": "开始整理实验数据，但还需要补充结论部分。", "importantEvents": "提交实验数据延期" },
+    { "date": "2026-08-24", "mood": "excellent", "weather": "rainy", "quote": "新学期开始了。", "content": "完成本学期课程和学习计划的初步整理。", "importantEvents": "制定学习计划" }
+  ]
+}
