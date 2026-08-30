@@ -1,47 +1,57 @@
-# SwiftData 数据模型规范
+# SwiftData 数据模型与本机偏好
 
-## V1 实体
+> 更新至 2026-08-30。SwiftData 负责用户生活数据；展示偏好与自动备份元数据不以额外业务实体重复保存。
 
-| 实体 | 核心字段 | 关系 |
+## 当前持久化实体
+
+| 实体 | 核心字段 | 关键关系／语义 |
 | --- | --- | --- |
-| `Task` | title、description、createdAt、plannedDate、startDate、endDate、deadline、priority、status、completedAt | Course?、Project?、Assignment?、Tag[] |
-| `Event` | title、description、startDate、endDate、isAllDay、type、location | Course?、Tag[] |
-| `Course` | name、instructor、classroom、colorHex、semester、note、startDateOverride、endDateOverride | CourseSession[]、Assignment[]、Exam[]、Task[] |
-| `CourseSession` | weekday、startTimeMinutes、endTimeMinutes、startDate、endDate、weekPattern、recurrenceEnabled | Course |
-| `Assignment` | title、description、assignedDate、dueDate、isCompleted | Course、linkedTask? |
-| `Exam` | title、description、startDate、endDate、location | Course |
-| `JournalEntry` | date、mood、weather、quote、content、importantEvents | 按自然日唯一 |
-| `Tag` | name、colorHex、createdAt | Task[]、Event[] |
+| `AppConfiguration` | `id`、`createdAt` | SwiftData 容器的应用级锚点；当前通用偏好仍由 UserDefaults 保存 |
+| `Task` | 标题、描述、计划日期、具体起止时间、截止日期、优先级、状态、完成时间、排序值 | 可关联 Course、Project、Assignment 与 Tag；Today 拖放使用 `plannedDate` |
+| `Event` | 标题、描述、起止时间、全天、类型、地点 | 可关联 Course 与 Tag；是个人日程的唯一来源 |
+| `Course` | 名称、教师、教室、显示色、学期、备注、独立日期覆盖 | 拥有 CourseSession、Assignment、Exam；关联 Task 与 Event |
+| `CourseSession` | 星期、起止分钟、生效日期、结束日期、单双周、教室覆盖、启用状态 | 课程的重复规则；按日期动态生成展示实例 |
+| `Assignment` | 标题、描述、布置日期、截止日期、完成状态 | 属于 Course；可关联一个可执行 Task |
+| `Exam` | 标题、描述、起止时间、地点 | 属于 Course；动态进入日历与 Today |
+| `JournalEntry` | 日期、心情、天气、每日一句、正文、重要事件、更新时间 | 一个自然日只应有一条；由 `JournalEntryService` 维护 |
+| `Habit` | 名称、SF Symbol、创建时间 | 级联拥有 HabitRecord；目前通过 Calendar／Journal 使用 |
+| `HabitRecord` | 打卡日期 | 属于 Habit；同日历史重复记录在轨迹统计中只计一次 |
+| `Project` | 名称、描述、截止日期、归档状态 | 与 Task 关联；暂不提供主导航 UI，但会被备份与测试数据保留 |
+| `Tag` | 名称、颜色、创建时间 | 多对多关联 Task 与 Event |
 
-`TimetablePeriod` 是本机课表展示偏好，保存节次名称与开始 / 结束分钟数；它不属于 SwiftData 业务实体。`SemesterDateRange` 同样属于本机偏好，保存全局学期开始与结束日期；总周数由日期范围推导，不额外保存重复字段。`CourseSession` 继续保存课程的真实时间，避免调整课表展示规则时改写用户课程数据。
+## 非实体偏好与展示对象
 
-完整备份使用版本化 `.lifeosbackup` JSON 档案，而不是复制 SwiftData 私有数据库文件。档案保存全部 SwiftData 实体、实体关系标识，以及课表节次、学期范围、展示习惯和通用界面偏好；恢复时按标识重建关系并保留原有 UUID。应用会在私有 Application Support 目录维护自动保护档案：当天快照在启动和退出前更新为同一份，保留最近 7 天与更早 4 个自然周各一份；恢复和人工测试数据导入前各创建独立保护点，保留最近 14 份。自动保护不新增 SwiftData 实体，也不扫描用户的外部目录。
-
-`Course.startDateOverride` 与 `Course.endDateOverride` 同时为空时，课程继承全局 `SemesterDateRange`；任一课程设置独立日期后，该课程的全部 `CourseSession` 使用覆盖范围。修改全局学期日期只更新继续继承全局范围的课程，不覆盖其他课程的独立设置。
-
-`DailyLifeOverview` 与 `DailyHabitStatus` 是由 `JournalEntry`、`HabitRecord`、Task 和日程实体按自然日动态计算的展示对象，不属于 SwiftData 实体，也不得持久化为重复的每日汇总数据。
-
-单项 Habit 的完成轨迹同样由该 Habit 的 `HabitRecord` 按本地自然日即时计算；同一天的重复旧记录在展示与统计中只计一次。月历支持对当天及过去日期补记或撤销，操作只新增或删除对应的 `HabitRecord`，不额外保存轨迹、连续天数或热力图数据。
-
-日历与日记中的“展示习惯”选择保存为本机 `UserDefaults` 偏好，值为 Habit UUID 列表；它只控制页面呈现，不改变 `Habit`、`HabitRecord` 或任何历史完成记录。未设置偏好时默认展示全部 Habit。
-
-## 为 V2 / V3 预留的实体
-
-`Project`、`Habit`、`HabitRecord`、`InboxItem`、`DailySummary` 的完整字段在产品架构设计中已定义。若尚未被 V1 界面使用，可在阶段 1 创建模型，或在 V2 前以兼容迁移方式加入；选择须记录到决策日志。
+| 类型 | 存放位置 | 作用 |
+| --- | --- | --- |
+| `TimetablePeriod` | UserDefaults | 课表节次名称与起止分钟；只影响网格映射 |
+| `SemesterDateRange` | UserDefaults | 全局学期起止日期；周数由日期范围计算 |
+| 展示习惯 UUID 集合 | UserDefaults | 控制 Calendar／Journal 显示哪些 Habit，不修改打卡历史 |
+| 外观、启动页、周起始日、24 小时制 | UserDefaults / `@AppStorage` | 通用界面偏好 |
+| `ScheduleItem`、`TodayOverview`、`DailyLifeOverview`、`DailyHabitStatus` | 内存动态计算 | 只用于聚合展示，绝不持久化为重复汇总 |
 
 ## 关系与删除规则
 
-- Course 删除：级联删除 CourseSession、Assignment、Exam；关联 Task 的 course 置空并保留 Task。
-- Project 删除：Task 保留，project 置空。
-- Habit 删除：级联删除 HabitRecord。
-- Task 删除：关联 Assignment 保留，`linkedTask` 置空。
-- CourseSession 是规则，不是预先生成的每次上课 Event。
-- Assignment 默认创建关联的 Task；完成状态必须通过 Service 统一同步。
+- 删除 Course：级联删除 CourseSession、Assignment、Exam；关联 Task 与 Event 保留，但 `course` 解除关联。
+- 删除 CourseSession：只删除该条重复规则，不影响 Course、同课程其他课次、作业或考试。
+- 删除 Project：关联 Task 保留，`project` 置空。
+- 删除 Habit：级联删除 HabitRecord。
+- 删除 Task：关联 Assignment 保留，`linkedTask` 置空。
+- 删除 JournalEntry：仅删除指定自然日的日记，不影响当天课程、日程、任务或 HabitRecord。
+- Assignment 的可执行状态通过关联 Task 表示；跨实体同步必须经 Service 或明确的编辑路径完成。
 
-## 日期规则
+## 日期与教学周规则
 
-- 数据层所有时间存为 `Date`。
-- “某一天”的查询使用用户当前 Calendar 的 `startOfDay(for:)` 与下一日边界。
-- CourseSession 的 `startTimeMinutes` / `endTimeMinutes` 表示从当天 00:00 起的分钟数。
-- CourseSession 的 `weekPattern` 为每周、单周或双周；开始日期所在自然周（星期一至星期日）视为第 1 周，之后每周星期一进入下一周。设置独立日期的课程同样以其开始日期所在自然周作为第 1 周。
-- 日期、时间与时区格式仅在 View 层本地化显示。
+- 所有日期持久化为 `Date`；页面显示时才本地化格式。
+- 某一天统一使用当前 `Calendar` 的 `startOfDay(for:)` 比较。
+- `CourseSession.startTimeMinutes` 与 `endTimeMinutes` 是当天 00:00 起的分钟数，且结束必须晚于开始。
+- 课程时间按周一至周日排列；同一天按开始、结束时间和稳定 UUID 顺序排列。
+- 课程日期默认继承全局 `SemesterDateRange`。课程关闭“跟随课表学期日期”后保存独立起止日期，并更新该课程全部 CourseSession；之后全局范围变更不会覆盖该课程。
+- 开始日期所在的星期一至星期日是第 1 周，之后每周星期一换周。单双周以 CourseSession 的有效日期所在第 1 周为基准。
+
+## 完整备份与恢复
+
+- `.lifeosbackup` 是版本化 JSON 档案，使用稳定 UUID 重建实体与关系；禁止将 SwiftData 私有数据库文件当作备份格式。
+- 档案包含全部 SwiftData 实体、关系标识、课表节次、学期范围、展示习惯和通用偏好。
+- 读取档案前校验版本、唯一标识、关系引用、节次重叠与课程起止时间；校验失败不得写入本机数据。
+- 自动保护仅保存于应用私有目录：最近 7 天日快照、较早 4 周周快照、最多 14 个导入前／恢复前保护点。
+- 恢复会替换当前本机实体和偏好；恢复前必须先创建恢复点，用户界面必须显示破坏性确认。
