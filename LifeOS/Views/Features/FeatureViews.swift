@@ -126,7 +126,7 @@ struct TodayView: View {
         try? modelContext.save()
     }
 
-    /// Dragging is the only way a task is explicitly assigned to Today.
+    /// Dragging assigns a task to Today through the shared scheduling rule.
     private func addToToday(_ identifiers: [String]) -> Bool {
         let draggedTasks = identifiers.compactMap { identifier in
             UUID(uuidString: identifier).flatMap { id in tasks.first { $0.id == id } }
@@ -207,6 +207,8 @@ struct TasksView: View {
                                 Button("编辑任务") { openInspector(for: task) }
                                 if TaskListGrouping.isScheduled(task, on: .now) {
                                     Button("移出今日任务") { removeFromToday(task) }
+                                } else {
+                                    Button("设为今日任务") { addToToday(task) }
                                 }
                                 Divider()
                                 Button("删除任务", role: .destructive) { delete(task) }
@@ -296,6 +298,10 @@ struct TasksView: View {
         task.startDate = nil
         task.updatedAt = .now
         try? modelContext.save()
+    }
+
+    private func addToToday(_ task: Task) {
+        try? InboxCaptureService.schedule(task, on: .now, in: modelContext)
     }
 }
 
@@ -472,8 +478,9 @@ struct TaskInspectorView: View {
                         .foregroundStyle(.green)
                     Button("移出今日任务", role: .destructive, action: removeFromToday)
                 } else {
-                    Label("可在 Today 的任务列表中拖入今日任务", systemImage: "arrow.left.circle")
+                    Label("将任务安排在今天完成", systemImage: "calendar.badge.plus")
                         .foregroundStyle(.secondary)
+                    Button("设为今日任务", action: addToToday)
                 }
             }
 
@@ -528,6 +535,11 @@ struct TaskInspectorView: View {
         task.updatedAt = .now
         try? modelContext.save()
         savedMessage = "已移出今日任务"
+    }
+
+    private func addToToday() {
+        try? InboxCaptureService.schedule(task, on: .now, in: modelContext)
+        savedMessage = "已设为今日任务"
     }
 }
 

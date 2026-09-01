@@ -28,7 +28,7 @@ final class CoreModelTests: XCTestCase {
         XCTAssertEqual(try context.fetch(FetchDescriptor<Task>()).count, 1)
     }
 
-    func testInboxCaptureCanBeScheduledForADay() throws {
+    func testSchedulingTaskForTodayPreservesDeadlineAndClearsPreciseTime() throws {
         let container = try makeContainer()
         let context = ModelContext(container)
         var calendar = Calendar(identifier: .gregorian)
@@ -36,12 +36,15 @@ final class CoreModelTests: XCTestCase {
         let date = calendar.date(from: DateComponents(year: 2026, month: 8, day: 26, hour: 16))!
         let task = try InboxCaptureService.capture(title: "预约图书馆", in: context)
         task.startDate = calendar.date(byAdding: .day, value: -1, to: date)
+        task.deadline = calendar.date(byAdding: .day, value: 2, to: date)
 
         try InboxCaptureService.schedule(task, on: date, in: context, calendar: calendar)
 
         XCTAssertEqual(task.status, .active)
         XCTAssertEqual(task.plannedDate, calendar.startOfDay(for: date))
         XCTAssertNil(task.startDate)
+        XCTAssertEqual(task.deadline, calendar.date(byAdding: .day, value: 2, to: date))
+        XCTAssertTrue(TaskListGrouping.isScheduled(task, on: date, calendar: calendar))
     }
 
     func testCourseRelationshipsPersistInMemory() throws {
