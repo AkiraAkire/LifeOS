@@ -24,6 +24,7 @@
 - `TimetablePeriod` 合法性与 `TimetableLayout` 跨节映射、冲突并列轨道。
 - `ScheduleAggregationService` 的课程、日程、考试、带时间任务聚合与时间排序。
 - JournalEntry 同一自然日复用、天气更新不覆盖正文、指定日记删除。
+- 日记迷你月历的连续六周日期范围与用户配置的每周起始日。
 - DailyLifeOverview 的日记、HabitRecord、任务与日程联动。
 - 月日历六行日期布局及其星期起始顺序，供主月历和迷你月历导航共同使用。
 - Habit 展示偏好、同日记录归一化、月／年完成次数、当前连续和最长连续。

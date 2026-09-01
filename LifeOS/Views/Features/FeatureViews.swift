@@ -3747,6 +3747,7 @@ struct JournalView: View {
     @Query(sort: \Task.createdAt, order: .reverse) private var tasks: [Task]
     @Query(sort: \Exam.startDate) private var exams: [Exam]
     @State private var selectedDate = Date.now
+    @State private var displayedMonth = Date.now
     @State private var selectedID: UUID?
     @State private var isLifeSummaryPresented = false
     @AppStorage(HabitDisplayConfiguration.storageKey) private var habitDisplaySelection = ""
@@ -3817,6 +3818,14 @@ struct JournalView: View {
             LifePageHeader(eyebrow: nil, title: "记录", subtitle: "留下一点只属于你的记录")
                 .padding(.horizontal, AppSpacing.lg)
                 .padding(.top, AppSpacing.sm)
+
+            JournalMiniCalendarNavigator(
+                selectedDate: selectedDate,
+                displayedMonth: $displayedMonth,
+                entries: entries,
+                selectDate: select
+            )
+            .padding(.horizontal, AppSpacing.lg)
 
             List {
                 Section {
@@ -3900,23 +3909,25 @@ struct JournalView: View {
     }
 
     private func selectToday() {
-        let today = Date.now
-        selectedDate = today
-        selectedID = JournalEntryService.entry(on: today, in: entries)?.id
+        select(Date.now)
     }
 
     private func selectRequestedOrToday() {
         if let requestedDate = navigation.takeRequestedJournalDate() {
-            selectedDate = requestedDate
-            selectedID = JournalEntryService.entry(on: requestedDate, in: entries)?.id
+            select(requestedDate)
         } else {
             selectToday()
         }
     }
 
     private func select(_ entry: JournalEntry) {
-        selectedDate = entry.date
-        selectedID = entry.id
+        select(entry.date)
+    }
+
+    private func select(_ date: Date) {
+        selectedDate = date
+        displayedMonth = date
+        selectedID = JournalEntryService.entry(on: date, in: entries)?.id
     }
 
     private func delete(_ entry: JournalEntry) {
@@ -3924,6 +3935,123 @@ struct JournalView: View {
         try? JournalEntryService.delete(entry, in: modelContext)
     }
 
+}
+
+/// Keeps date lookup local to Journal while preserving the existing
+/// selected-day editor state and its no-empty-entry-until-save behavior.
+enum JournalMonthCalendarLayout {
+    static func visibleDays(for date: Date, calendar: Calendar = .current) -> [Date] {
+        let monthStart = calendar.dateInterval(of: .month, for: date)?.start ?? date
+        let weekdayOffset = (calendar.component(.weekday, from: monthStart) - calendar.firstWeekday + 7) % 7
+        let gridStart = calendar.date(byAdding: .day, value: -weekdayOffset, to: monthStart) ?? monthStart
+
+        return (0..<42).compactMap { calendar.date(byAdding: .day, value: $0, to: gridStart) }
+    }
+
+    static func weekdaySymbols(calendar: Calendar = .current) -> [String] {
+        let symbols = ["日", "一", "二", "三", "四", "五", "六"]
+        let firstIndex = max(0, calendar.firstWeekday - 1)
+        return Array(symbols[firstIndex...]) + Array(symbols[..<firstIndex])
+    }
+}
+
+private struct JournalMiniCalendarNavigator: View {
+    let selectedDate: Date
+    @Binding var displayedMonth: Date
+    let entries: [JournalEntry]
+    let selectDate: (Date) -> Void
+
+    private let calendar = Calendar.current
+
+    var body: some View {
+        let monthStart = calendar.dateInterval(of: .month, for: displayedMonth)?.start ?? displayedMonth
+        let days = JournalMonthCalendarLayout.visibleDays(for: displayedMonth, calendar: calendar)
+        let columns = Array(repeating: GridItem(.flexible(minimum: 0), spacing: AppSpacing.xxs), count: 7)
+
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            HStack(spacing: AppSpacing.xs) {
+                Button(action: { moveMonth(by: -1) }) {
+                    Image(systemName: "chevron.left")
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("查看上个月日记")
+
+                Text(monthStart.formatted(.dateTime.locale(Locale(identifier: "zh_CN")).year().month(.wide)))
+                    .font(AppTypography.caption.weight(.semibold))
+                    .foregroundStyle(AppColors.primaryText)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity)
+
+                Button(action: { moveMonth(by: 1) }) {
+                    Image(systemName: "chevron.right")
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("查看下个月日记")
+            }
+            .foregroundStyle(AppColors.secondaryText)
+
+            LazyVGrid(columns: columns, spacing: AppSpacing.xxs) {
+                ForEach(JournalMonthCalendarLayout.weekdaySymbols(calendar: calendar), id: \.self) { symbol in
+                    Text(symbol)
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(AppColors.secondaryText)
+                        .frame(maxWidth: .infinity)
+                }
+
+                ForEach(days, id: \.self) { day in
+                    Button { selectDate(day) } label: {
+                        Text("\(calendar.component(.day, from: day))")
+                            .font(.system(size: 10, weight: calendar.isDate(day, inSameDayAs: selectedDate) ? .bold : .regular, design: .rounded))
+                            .foregroundStyle(dayColor(for: day, monthStart: monthStart))
+                            .frame(maxWidth: .infinity, minHeight: 20)
+                            .background(selectionBackground(for: day), in: Circle())
+                            .overlay(alignment: .bottom) {
+                                if hasEntry(on: day) {
+                                    Circle()
+                                        .fill(AppColors.journal)
+                                        .frame(width: 3, height: 3)
+                                        .offset(y: -2)
+                                }
+                            }
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(dayAccessibilityLabel(day))
+                }
+            }
+        }
+        .padding(AppSpacing.sm)
+        .background(AppColors.surface.opacity(0.56), in: RoundedRectangle(cornerRadius: AppRadius.medium, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: AppRadius.medium, style: .continuous)
+                .stroke(AppColors.surfaceBorder, lineWidth: 1)
+        }
+        .accessibilityLabel("日记日期导航")
+    }
+
+    private func moveMonth(by value: Int) {
+        displayedMonth = calendar.date(byAdding: .month, value: value, to: displayedMonth) ?? displayedMonth
+    }
+
+    private func hasEntry(on date: Date) -> Bool {
+        entries.contains { calendar.isDate($0.date, inSameDayAs: date) }
+    }
+
+    private func dayColor(for day: Date, monthStart: Date) -> Color {
+        if calendar.isDate(day, inSameDayAs: selectedDate) { return AppColors.surface }
+        if !calendar.isDate(day, equalTo: monthStart, toGranularity: .month) { return AppColors.secondaryText.opacity(0.45) }
+        if calendar.isDateInToday(day) { return AppColors.journal }
+        return AppColors.primaryText
+    }
+
+    private func selectionBackground(for day: Date) -> Color {
+        calendar.isDate(day, inSameDayAs: selectedDate) ? AppColors.journal : .clear
+    }
+
+    private func dayAccessibilityLabel(_ day: Date) -> String {
+        let formattedDate = day.formatted(.dateTime.locale(Locale(identifier: "zh_CN")).year().month().day().weekday(.wide))
+        return hasEntry(on: day) ? "\(formattedDate)，已有日记" : "\(formattedDate)，还没有日记"
+    }
 }
 
 struct JournalHistoryRow: View {

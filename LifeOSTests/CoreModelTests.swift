@@ -490,6 +490,22 @@ final class CoreModelTests: XCTestCase {
         XCTAssertTrue(calendar.isDate(created.date, inSameDayAs: anotherDay))
     }
 
+    func testJournalMonthCalendarLayoutBuildsSixWeeksFromTheConfiguredWeekStart() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.firstWeekday = 2
+        let august = calendar.date(from: DateComponents(year: 2026, month: 8, day: 12))!
+        let expectedFirstDay = calendar.date(from: DateComponents(year: 2026, month: 7, day: 27))!
+        let expectedLastDay = calendar.date(from: DateComponents(year: 2026, month: 9, day: 6))!
+
+        let days = JournalMonthCalendarLayout.visibleDays(for: august, calendar: calendar)
+
+        XCTAssertEqual(days.count, 42)
+        XCTAssertEqual(days.first, expectedFirstDay)
+        XCTAssertEqual(days.last, expectedLastDay)
+        XCTAssertEqual(JournalMonthCalendarLayout.weekdaySymbols(calendar: calendar), ["一", "二", "三", "四", "五", "六", "日"])
+    }
+
     func testDailyLifeOverviewCombinesJournalHabitsTasksAndSchedule() {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
