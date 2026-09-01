@@ -15,7 +15,7 @@ enum ManualTestDataService {
 
         var coursesBySourceID: [String: Course] = [:]
         for source in dataset.courses {
-            let course = Course(name: source.name, instructor: source.instructor, classroom: source.classroom, colorHex: source.colorHex, semester: source.semester, note: source.note)
+            let course = Course(name: source.name, instructor: source.instructor, classroom: source.classroom, colorHex: source.colorHex, symbolName: source.symbolName ?? CourseIcon.defaultSymbolName, semester: source.semester, note: source.note)
             modelContext.insert(course)
             coursesBySourceID[source.id] = course
         }
@@ -157,7 +157,7 @@ struct ManualTestDataset: Decodable {
 }
 
 struct ManualTestTimetablePeriod: Decodable { let name: String; let startTimeMinutes: Int; let endTimeMinutes: Int }
-struct ManualTestCourse: Decodable { let id: String; let name: String; let instructor: String?; let classroom: String?; let colorHex: String; let semester: String?; let note: String? }
+struct ManualTestCourse: Decodable { let id: String; let name: String; let instructor: String?; let classroom: String?; let colorHex: String; let symbolName: String?; let semester: String?; let note: String? }
 struct ManualTestCourseSession: Decodable { let courseID: String; let weekday: Int; let startTimeMinutes: Int; let endTimeMinutes: Int; let startDate: String; let endDate: String?; let weekPattern: String? }
 struct ManualTestAssignment: Decodable { let title: String; let courseID: String; let dueDate: String; let description: String? }
 struct ManualTestExam: Decodable { let title: String; let courseID: String; let startDate: String; let endDate: String?; let location: String?; let description: String? }

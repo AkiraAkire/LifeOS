@@ -712,66 +712,43 @@ struct CoursesView: View {
     @State private var editingCourse: Course?
 
     var body: some View {
-        HSplitView {
-            VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                LifePageHeader(eyebrow: nil, title: "我的课程", subtitle: "维护课程资料、作业与考试")
-                    .padding(.horizontal, AppSpacing.lg)
-                    .padding(.top, AppSpacing.lg)
-
-                List(selection: $selectedID) {
-                    ForEach(courses, id: \.id) { course in
-                        Label(course.name, systemImage: "graduationcap")
-                            .font(AppTypography.bodyEmphasis)
-                            .foregroundStyle(AppColors.primaryText)
-                        .tag(course.id)
-                        .padding(.vertical, AppSpacing.xxs)
-                        .listRowBackground(AppColors.surface.opacity(0.7))
-                    }
-                    .onDelete(perform: delete)
+        Group {
+            if let course = selectedCourse {
+                CourseDetailView(course: course) {
+                    editingCourse = course
+                    editorPresented = true
+                } onDelete: {
+                    delete(course)
                 }
-                .listStyle(.sidebar)
-                .scrollContentBackground(.hidden)
-            }
-            .background(AppColors.sidebar)
-            .frame(minWidth: 240, idealWidth: 300, maxWidth: 340)
-
-            Group {
-                if let course = courses.first(where: { $0.id == selectedID }) {
-                    CourseDetailView(course: course) {
+            } else {
+                CourseLibraryView(
+                    courses: courses,
+                    onSelect: { selectedID = $0.id },
+                    onEdit: { course in
                         editingCourse = course
                         editorPresented = true
-                    } onDelete: {
-                        delete(course)
-                    }
-                } else {
-                    VStack(spacing: AppSpacing.md) {
-                        Image(systemName: "graduationcap")
-                            .font(.system(size: 30, weight: .light))
-                            .foregroundStyle(AppColors.course)
-                        Text("选择一门课程")
-                            .font(AppTypography.sectionTitle)
-                            .foregroundStyle(AppColors.primaryText)
-                        Text("新建课程后，可在这里维护课程资料、作业和考试。")
-                            .font(AppTypography.metadata)
-                            .foregroundStyle(AppColors.secondaryText)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(AppColors.canvas)
-                }
+                    },
+                    onCreate: createCourse
+                )
             }
-            .frame(minWidth: 420, maxWidth: .infinity, maxHeight: .infinity)
         }
         .background(AppColors.canvas)
         .toolbar {
+            if selectedCourse != nil {
+                ToolbarItem(placement: .navigation) {
+                    Button {
+                        selectedID = nil
+                    } label: {
+                        Label("全部课程", systemImage: "chevron.left")
+                    }
+                    .accessibilityLabel("返回课程列表")
+                }
+            }
             ToolbarItem(placement: .primaryAction) {
                 Button(action: createCourse) { Label("新建课程", systemImage: "plus") }
             }
         }
         .sheet(isPresented: $editorPresented) { CourseEditorView(course: editingCourse) }
-    }
-
-    private func delete(at offsets: IndexSet) {
-        offsets.map { courses[$0] }.forEach(delete)
     }
 
     private func delete(_ course: Course) {
@@ -783,6 +760,202 @@ struct CoursesView: View {
     private func createCourse() {
         editingCourse = nil
         editorPresented = true
+    }
+
+    private var selectedCourse: Course? {
+        courses.first(where: { $0.id == selectedID })
+    }
+}
+
+private struct CourseLibraryView: View {
+    let courses: [Course]
+    let onSelect: (Course) -> Void
+    let onEdit: (Course) -> Void
+    let onCreate: () -> Void
+
+    private let columns = [
+        GridItem(.adaptive(minimum: 270, maximum: 440), spacing: AppSpacing.lg, alignment: .top)
+    ]
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: AppSpacing.xl) {
+                LifePageHeader(
+                    eyebrow: "知识空间",
+                    title: "我的课程",
+                    subtitle: courses.isEmpty ? "先新建一门课程，开始整理你的学习节奏。" : "选择今天想学习或维护的科目。"
+                )
+
+                if courses.isEmpty {
+                    ContentUnavailableView {
+                        Label("还没有课程", systemImage: "graduationcap")
+                    } description: {
+                        Text("新建课程后，可设置课程图标、上课时间、作业和考试。")
+                    } actions: {
+                        Button("新建课程", action: onCreate)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 340)
+                } else {
+                    LazyVGrid(columns: columns, alignment: .leading, spacing: AppSpacing.lg) {
+                        ForEach(courses, id: \.id) { course in
+                            CourseLibraryCard(course: course, onSelect: { onSelect(course) }, onEdit: { onEdit(course) })
+                        }
+                    }
+                }
+            }
+            .padding(AppSpacing.page)
+            .frame(maxWidth: 1_120, alignment: .leading)
+        }
+    }
+}
+
+private struct CourseLibraryCard: View {
+    let course: Course
+    let onSelect: () -> Void
+    let onEdit: () -> Void
+    @State private var isHovered = false
+
+    private var tint: Color { Color(courseHex: course.colorHex) }
+    private var completedAssignments: Int {
+        course.assignments.filter { $0.isCompleted || $0.linkedTask?.status == .completed }.count
+    }
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            Button(action: onSelect) {
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack(alignment: .top) {
+                        CourseIconView(identifier: course.symbolName, tint: tint, size: 46)
+                        Spacer(minLength: AppSpacing.sm)
+                        Text(progressText)
+                            .font(AppTypography.caption.weight(.semibold))
+                            .foregroundStyle(tint)
+                            .padding(.horizontal, AppSpacing.xs)
+                            .padding(.vertical, AppSpacing.xxs)
+                            .background(tint.opacity(0.12), in: Capsule())
+                            .padding(.trailing, 36)
+                    }
+                    .padding(AppSpacing.lg)
+                    .frame(maxWidth: .infinity, minHeight: 112, alignment: .topLeading)
+                    .background(tint.opacity(isHovered ? 0.17 : 0.11))
+
+                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                        Text(course.instructor ?? "自主学习")
+                            .font(AppTypography.caption)
+                            .foregroundStyle(AppColors.secondaryText)
+                        Text(course.name)
+                            .font(.system(size: 21, weight: .semibold))
+                            .foregroundStyle(AppColors.primaryText)
+                            .multilineTextAlignment(.leading)
+                        Text(sessionSummary)
+                            .font(AppTypography.metadata)
+                            .foregroundStyle(AppColors.secondaryText)
+                            .lineLimit(1)
+                        Rectangle()
+                            .fill(AppColors.divider.opacity(0.55))
+                            .frame(height: 1)
+                            .padding(.vertical, AppSpacing.xs)
+                        HStack {
+                            Text(workSummary)
+                            Spacer(minLength: AppSpacing.sm)
+                            Text("进入课程 →")
+                                .foregroundStyle(AppColors.accent)
+                        }
+                        .font(AppTypography.caption.weight(.medium))
+                        .foregroundStyle(AppColors.secondaryText)
+                    }
+                    .padding(AppSpacing.lg)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(AppColors.surface, in: RoundedRectangle(cornerRadius: AppRadius.extraLarge, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: AppRadius.extraLarge, style: .continuous)
+                        .stroke(isHovered ? tint.opacity(0.55) : AppColors.surfaceBorder, lineWidth: 1)
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("打开课程：\(course.name)")
+
+            Menu {
+                Button("编辑课程", systemImage: "pencil", action: onEdit)
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(AppColors.secondaryText)
+                    .frame(width: 30, height: 30)
+                    .background(AppColors.surface.opacity(0.9), in: Circle())
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .padding(AppSpacing.md)
+            .accessibilityLabel("编辑\(course.name)的图标与资料")
+        }
+        .onHover { isHovered = $0 }
+    }
+
+    private var progressText: String {
+        guard !course.assignments.isEmpty else { return "准备中" }
+        return "作业 \(completedAssignments)/\(course.assignments.count)"
+    }
+
+    private var workSummary: String {
+        let pendingAssignments = max(0, course.assignments.count - completedAssignments)
+        let pieces = [
+            pendingAssignments > 0 ? "\(pendingAssignments) 项待办" : nil,
+            course.exams.isEmpty ? nil : "\(course.exams.count) 场考试"
+        ].compactMap { $0 }
+        return pieces.isEmpty ? "还没有作业与考试" : pieces.joined(separator: " · ")
+    }
+
+    private var sessionSummary: String {
+        guard let session = CourseSessionOrdering.sorted(course.sessions).first else { return "暂未设置课程时间" }
+        return "下次课 · 周\(weekdayTitle(session.weekday)) \(timeText(session.startTimeMinutes))–\(timeText(session.endTimeMinutes))"
+    }
+
+    private func weekdayTitle(_ weekday: Weekday) -> String {
+        ["日", "一", "二", "三", "四", "五", "六"][weekday.rawValue - 1]
+    }
+
+    private func timeText(_ minutes: Int) -> String {
+        String(format: "%02d:%02d", minutes / 60, minutes % 60)
+    }
+}
+
+private struct CourseIconView: View {
+    let identifier: String
+    let tint: Color
+    let size: CGFloat
+
+    var body: some View {
+        Group {
+            if let text = CourseIcon.customText(from: identifier) {
+                Text(text)
+                    .font(.system(size: size * 0.48))
+            } else {
+                Image(systemName: CourseIcon.systemSymbolName(from: identifier))
+                    .font(.system(size: size * 0.46, weight: .medium))
+                    .symbolRenderingMode(.hierarchical)
+            }
+        }
+        .foregroundStyle(tint)
+        .frame(width: size, height: size)
+        .background(tint.opacity(0.12), in: RoundedRectangle(cornerRadius: size * 0.28, style: .continuous))
+        .accessibilityLabel("课程图标")
+    }
+}
+
+private extension Color {
+    init(courseHex: String) {
+        let value = courseHex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
+        guard value.count == 6, let rgb = UInt64(value, radix: 16) else {
+            self = AppColors.course
+            return
+        }
+        self.init(
+            red: Double((rgb >> 16) & 0xFF) / 255,
+            green: Double((rgb >> 8) & 0xFF) / 255,
+            blue: Double(rgb & 0xFF) / 255
+        )
     }
 }
 
@@ -800,6 +973,39 @@ private struct CourseColorOption: Identifiable {
     ]
 }
 
+private struct CourseIconOption: Identifiable {
+    let symbolName: String
+    let name: String
+    var id: String { symbolName }
+
+    static let all = [
+        CourseIconOption(symbolName: "graduationcap", name: "通用"),
+        CourseIconOption(symbolName: "book.closed", name: "阅读"),
+        CourseIconOption(symbolName: "function", name: "数学"),
+        CourseIconOption(symbolName: "sum", name: "统计"),
+        CourseIconOption(symbolName: "atom", name: "物理"),
+        CourseIconOption(symbolName: "flask", name: "化学"),
+        CourseIconOption(symbolName: "testtube.2", name: "实验"),
+        CourseIconOption(symbolName: "bolt", name: "电路"),
+        CourseIconOption(symbolName: "cpu", name: "计算"),
+        CourseIconOption(symbolName: "terminal", name: "编程"),
+        CourseIconOption(symbolName: "chart.bar", name: "图表"),
+        CourseIconOption(symbolName: "globe", name: "地理"),
+        CourseIconOption(symbolName: "character.book.closed", name: "语言"),
+        CourseIconOption(symbolName: "film", name: "影像"),
+        CourseIconOption(symbolName: "music.note", name: "音乐"),
+        CourseIconOption(symbolName: "paintpalette", name: "艺术"),
+        CourseIconOption(symbolName: "figure.run", name: "运动"),
+        CourseIconOption(symbolName: "heart", name: "健康"),
+        CourseIconOption(symbolName: "leaf", name: "自然"),
+        CourseIconOption(symbolName: "hammer", name: "工程"),
+        CourseIconOption(symbolName: "ruler", name: "设计"),
+        CourseIconOption(symbolName: "lightbulb", name: "灵感"),
+        CourseIconOption(symbolName: "camera", name: "摄影"),
+        CourseIconOption(symbolName: "brain.head.profile", name: "思考")
+    ]
+}
+
 struct CourseEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
@@ -810,6 +1016,8 @@ struct CourseEditorView: View {
     @State private var semester: String
     @State private var note: String
     @State private var colorHex: String
+    @State private var symbolName: String
+    @State private var customIconText: String
     @State private var usesSemesterDateRange: Bool
     @State private var courseStartDate: Date
     @State private var courseEndDate: Date
@@ -817,13 +1025,16 @@ struct CourseEditorView: View {
     init(course: Course? = nil) {
         let semesterRange = SemesterDateRangeStore.load()
         let effectiveRange = course?.effectiveDateRange(semesterRange: semesterRange) ?? semesterRange
+        let storedSymbolName = course?.symbolName ?? CourseIcon.defaultSymbolName
         self.course = course
         _name = State(initialValue: course?.name ?? "")
         _instructor = State(initialValue: course?.instructor ?? "")
         _classroom = State(initialValue: course?.classroom ?? "")
         _semester = State(initialValue: course?.semester ?? "")
         _note = State(initialValue: course?.note ?? "")
-        _colorHex = State(initialValue: course?.colorHex ?? "#007AFF")
+        _colorHex = State(initialValue: course?.colorHex ?? "#6E889A")
+        _symbolName = State(initialValue: CourseIcon.customText(from: storedSymbolName) == nil ? storedSymbolName : CourseIcon.defaultSymbolName)
+        _customIconText = State(initialValue: CourseIcon.customText(from: storedSymbolName) ?? "")
         _usesSemesterDateRange = State(initialValue: course?.usesSemesterDateRange ?? true)
         _courseStartDate = State(initialValue: effectiveRange.startDate)
         _courseEndDate = State(initialValue: effectiveRange.endDate)
@@ -836,12 +1047,52 @@ struct CourseEditorView: View {
                 TextField("教师（可选）", text: $instructor)
                 TextField("教室（可选）", text: $classroom)
                 TextField("学期（可选）", text: $semester)
+                TextField("课程备注（可选）", text: $note, axis: .vertical)
+            }
+
+            Section("课程图标") {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: AppSpacing.xs), count: 6), spacing: AppSpacing.xs) {
+                    ForEach(CourseIconOption.all) { option in
+                        Button {
+                            symbolName = option.symbolName
+                            customIconText = ""
+                        } label: {
+                            Image(systemName: option.symbolName)
+                                .font(.system(size: 17, weight: .medium))
+                                .symbolRenderingMode(.hierarchical)
+                                .foregroundStyle(symbolName == option.symbolName && customIconText.isEmpty ? AppColors.surface : AppColors.course)
+                                .frame(maxWidth: .infinity, minHeight: 34)
+                                .background(
+                                    symbolName == option.symbolName && customIconText.isEmpty ? AppColors.course : AppColors.course.opacity(0.10),
+                                    in: RoundedRectangle(cornerRadius: AppRadius.small, style: .continuous)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .help(option.name)
+                        .accessibilityLabel("选择\(option.name)图标")
+                    }
+                }
+
+                HStack(spacing: AppSpacing.sm) {
+                    CourseIconView(identifier: resolvedSymbolName, tint: Color(courseHex: colorHex), size: 32)
+                    TextField("自定义图标（例如 🧪 或 研）", text: $customIconText)
+                        .onChange(of: customIconText) { _, text in
+                            if CourseIcon.customIdentifier(from: text) != nil {
+                                symbolName = CourseIcon.defaultSymbolName
+                            }
+                        }
+                }
+                Text("可输入最多 4 个字符或 Emoji；留空时使用上方选择的系统图标。")
+                    .font(AppTypography.caption)
+                    .foregroundStyle(AppColors.secondaryText)
+            }
+
+            Section("外观") {
                 Picker("课程颜色", selection: $colorHex) {
                     ForEach(CourseColorOption.all) { option in
                         Text(option.name).tag(option.hex)
                     }
                 }
-                TextField("课程备注（可选）", text: $note, axis: .vertical)
             }
 
             Section("课程日期") {
@@ -859,7 +1110,7 @@ struct CourseEditorView: View {
                 }
             }
         }
-        .formStyle(.grouped).padding().frame(width: 420)
+        .formStyle(.grouped).padding().frame(width: 520)
         .navigationTitle(course == nil ? "新建课程" : "编辑课程")
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button("取消") { dismiss() } }
@@ -880,13 +1131,18 @@ struct CourseEditorView: View {
             course.semester = semester.nilIfEmpty
             course.note = note.nilIfEmpty
             course.colorHex = colorHex
+            course.symbolName = resolvedSymbolName
             course.setDateRange(selectedRange, usesSemesterRange: usesSemesterDateRange)
         } else {
-            let newCourse = Course(name: name.trimmingCharacters(in: .whitespacesAndNewlines), instructor: instructor.nilIfEmpty, classroom: classroom.nilIfEmpty, colorHex: colorHex, semester: semester.nilIfEmpty, note: note.nilIfEmpty)
+            let newCourse = Course(name: name.trimmingCharacters(in: .whitespacesAndNewlines), instructor: instructor.nilIfEmpty, classroom: classroom.nilIfEmpty, colorHex: colorHex, symbolName: resolvedSymbolName, semester: semester.nilIfEmpty, note: note.nilIfEmpty)
             newCourse.setDateRange(selectedRange, usesSemesterRange: usesSemesterDateRange)
             modelContext.insert(newCourse)
         }
         try? modelContext.save(); dismiss()
+    }
+
+    private var resolvedSymbolName: String {
+        CourseIcon.customIdentifier(from: customIconText) ?? symbolName
     }
 
     private func dateRangeText(_ range: SemesterDateRange) -> String {
@@ -915,7 +1171,10 @@ struct CourseDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.xl) {
-                LifePageHeader(eyebrow: nil, title: course.name, subtitle: nil)
+                HStack(spacing: AppSpacing.md) {
+                    CourseIconView(identifier: course.symbolName, tint: Color(courseHex: course.colorHex), size: 46)
+                    LifePageHeader(eyebrow: nil, title: course.name, subtitle: nil)
+                }
 
                 detailSection("课程信息") {
                             if let instructor = course.instructor { detailRow("教师", value: instructor) }

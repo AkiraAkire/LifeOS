@@ -18,7 +18,7 @@
 `CoreModelTests` 当前覆盖以下规则：
 
 - Task 完成／恢复状态、任务分组，以及通过拖放或任务页设置 Today 时保留截止日期、清除旧具体安排时间的规则。
-- Course、Tag、Project、Assignment 与 Task 的关系和完成进度。
+- Course、Tag、Project、Assignment 与 Task 的关系和完成进度，以及课程预设／自定义图标与完整备份恢复。
 - CourseSession 的单双周、生效日期、周一优先排序、课次编辑／删除。
 - `SemesterDateRange` 的自然周、星期一换周、总周数和课程独立日期覆盖。
 - `TimetablePeriod` 合法性与 `TimetableLayout` 跨节映射、冲突并列轨道。
@@ -31,7 +31,7 @@
 - 人工测试数据清空／导入。
 - 完整备份的关系和偏好往返、损坏关联拒绝恢复、自动日快照与恢复点保留。
 
-截至 2026-09-01，完整 macOS 测试套件为 **33 项、0 失败**。
+截至 2026-09-01，完整 macOS 测试套件为 **34 项、0 失败**。
 
 ## 建议命令
 

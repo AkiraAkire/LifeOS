@@ -32,6 +32,7 @@
       "instructor": "待补充",
       "classroom": "待补充",
       "colorHex": "#D1008F",
+      "symbolName": "cross.case.fill",
       "semester": "2026 秋季学期",
       "note": "截图原始信息：1–16 周，课程编号 225，周一第 3–4 节。"
     },
@@ -41,6 +42,7 @@
       "instructor": "李慧丽",
       "classroom": "惠园 2 栋 405A 实验室",
       "colorHex": "#E61E4D",
+      "symbolName": "testtube.2",
       "semester": "2026 秋季学期",
       "note": "截图原始信息：1–15 周，周一第 5–8 节。"
     },
@@ -50,6 +52,7 @@
       "instructor": "待补充",
       "classroom": "待补充",
       "colorHex": "#00AEEF",
+      "symbolName": "hammer.fill",
       "semester": "2026 秋季学期",
       "note": "截图原始信息：周一、周三第 9–10 节。"
     },
@@ -59,6 +62,7 @@
       "instructor": "何冠兵",
       "classroom": "待补充",
       "colorHex": "#A855D7",
+      "symbolName": "bolt.fill",
       "semester": "2026 秋季学期",
       "note": "截图原始信息：周二第 3–4 节（1–15 单周），周四第 3–4 节（1–16 周）。"
     },
@@ -68,6 +72,7 @@
       "instructor": "任富增",
       "classroom": "待补充",
       "colorHex": "#3887C8",
+      "symbolName": "circle.hexagongrid.fill",
       "semester": "2026 秋季学期",
       "note": "截图原始信息：周二第 3–4 节（2–16 双周），周五第 3–4 节。"
     },
@@ -77,6 +82,7 @@
       "instructor": "待补充",
       "classroom": "田径场",
       "colorHex": "#6394D8",
+      "symbolName": "figure.soccer",
       "semester": "2026 秋季学期",
       "note": "截图原始信息：周二第 5–6 节，体育 Y-中文-足球 1 班。"
     },
@@ -86,6 +92,7 @@
       "instructor": "李慧丽",
       "classroom": "惠园 2 栋 407A 实验室",
       "colorHex": "#C90086",
+      "symbolName": "flask.fill",
       "semester": "2026 秋季学期",
       "note": "截图原始信息：周三第 1–8 节，1–16 周。"
     },
@@ -95,6 +102,7 @@
       "instructor": "王金龙",
       "classroom": "待补充",
       "colorHex": "#F7A1B4",
+      "symbolName": "atom",
       "semester": "2026 秋季学期",
       "note": "截图原始信息：周四第 7–8 节，1–16 周。"
     },
@@ -104,6 +112,7 @@
       "instructor": "吴岩",
       "classroom": "待补充",
       "colorHex": "#80B542",
+      "symbolName": "film.fill",
       "semester": "2026 秋季学期",
       "note": "截图原始信息：周二第 9–10 节，1–16 周。"
     },
@@ -113,6 +122,7 @@
       "instructor": "何颖",
       "classroom": "待补充",
       "colorHex": "#DA5B80",
+      "symbolName": "layers.fill",
       "semester": "2026 秋季学期",
       "note": "截图原始信息：周三、周五第 9–10 节。"
     }

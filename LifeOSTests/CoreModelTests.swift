@@ -50,7 +50,7 @@ final class CoreModelTests: XCTestCase {
     func testCourseRelationshipsPersistInMemory() throws {
         let container = try makeContainer()
         let context = ModelContext(container)
-        let course = Course(name: "材料热力学")
+        let course = Course(name: "材料热力学", symbolName: "atom")
         let session = CourseSession(
             weekday: .tuesday,
             startTimeMinutes: 600,
@@ -74,6 +74,14 @@ final class CoreModelTests: XCTestCase {
         XCTAssertEqual(storedCourse.assignments.count, 1)
         XCTAssertEqual(storedCourse.exams.count, 1)
         XCTAssertEqual(storedCourse.sessions.first?.weekday, .tuesday)
+        XCTAssertEqual(storedCourse.symbolName, "atom")
+    }
+
+    func testCourseIconSupportsPresetAndCustomText() {
+        XCTAssertEqual(CourseIcon.systemSymbolName(from: "atom"), "atom")
+        XCTAssertEqual(CourseIcon.customIdentifier(from: "  🧪  "), "text:🧪")
+        XCTAssertEqual(CourseIcon.customText(from: "text:🧪"), "🧪")
+        XCTAssertEqual(CourseIcon.systemSymbolName(from: "text:🧪"), CourseIcon.defaultSymbolName)
     }
 
     func testProjectKeepsLinkedTasksAndCompletionProgress() throws {
@@ -695,7 +703,7 @@ final class CoreModelTests: XCTestCase {
         let sourceContext = ModelContext(sourceContainer)
         let date = Date(timeIntervalSince1970: 1_800_000_000)
 
-        let course = Course(name: "材料物理", instructor: "李老师", classroom: "一教 203", colorHex: "#5E5CE6", semester: "2026 秋季学期")
+        let course = Course(name: "材料物理", instructor: "李老师", classroom: "一教 203", colorHex: "#5E5CE6", symbolName: "text:🧪", semester: "2026 秋季学期")
         let session = CourseSession(
             weekday: .monday,
             startTimeMinutes: 9 * 60,
@@ -791,6 +799,7 @@ final class CoreModelTests: XCTestCase {
         XCTAssertEqual(restoredTask.assignment?.linkedTask?.id, restoredTask.id)
         XCTAssertEqual(restoredTask.priority, .high)
         XCTAssertEqual(restoredTask.sortOrder, 2)
+        XCTAssertEqual(restoredTask.course?.symbolName, "text:🧪")
 
         let restoredEvent = try XCTUnwrap(targetContext.fetch(FetchDescriptor<Event>()).first)
         XCTAssertEqual(restoredEvent.tags.map(\.name), ["学习"])
