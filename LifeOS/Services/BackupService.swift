@@ -233,6 +233,7 @@ enum LifeOSBackupService {
                 classroom: source.classroom,
                 colorHex: source.colorHex,
                 symbolName: source.symbolName ?? CourseIcon.defaultSymbolName,
+                iconImageData: source.iconImageData,
                 semester: source.semester,
                 note: source.note,
                 startDateOverride: source.startDateOverride,
@@ -707,8 +708,8 @@ struct BackupProject: Codable, BackupIdentifiable { let id: UUID; let name: Stri
 struct BackupTag: Codable, BackupIdentifiable { let id: UUID; let name: String; let colorHex: String; let createdAt: Date; init(_ value: Tag) { id = value.id; name = value.name; colorHex = value.colorHex; createdAt = value.createdAt } }
 
 struct BackupCourse: Codable, BackupIdentifiable {
-    let id: UUID; let name: String; let instructor: String?; let classroom: String?; let colorHex: String; let symbolName: String?; let semester: String?; let note: String?; let startDateOverride: Date?; let endDateOverride: Date?; let createdAt: Date; let updatedAt: Date; let isArchived: Bool
-    init(_ value: Course) { id = value.id; name = value.name; instructor = value.instructor; classroom = value.classroom; colorHex = value.colorHex; symbolName = value.symbolName; semester = value.semester; note = value.note; startDateOverride = value.startDateOverride; endDateOverride = value.endDateOverride; createdAt = value.createdAt; updatedAt = value.updatedAt; isArchived = value.isArchived }
+    let id: UUID; let name: String; let instructor: String?; let classroom: String?; let colorHex: String; let symbolName: String?; let iconImageData: Data?; let semester: String?; let note: String?; let startDateOverride: Date?; let endDateOverride: Date?; let createdAt: Date; let updatedAt: Date; let isArchived: Bool
+    init(_ value: Course) { id = value.id; name = value.name; instructor = value.instructor; classroom = value.classroom; colorHex = value.colorHex; symbolName = value.symbolName; iconImageData = value.iconImageData; semester = value.semester; note = value.note; startDateOverride = value.startDateOverride; endDateOverride = value.endDateOverride; createdAt = value.createdAt; updatedAt = value.updatedAt; isArchived = value.isArchived }
 }
 
 struct BackupCourseSession: Codable, BackupIdentifiable {

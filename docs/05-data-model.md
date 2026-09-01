@@ -9,7 +9,7 @@
 | `AppConfiguration` | `id`、`createdAt` | SwiftData 容器的应用级锚点；当前通用偏好仍由 UserDefaults 保存 |
 | `Task` | 标题、描述、计划日期、具体起止时间、截止日期、优先级、状态、完成时间、排序值 | 可关联 Course、Project、Assignment 与 Tag；Today 拖放使用 `plannedDate` |
 | `Event` | 标题、描述、起止时间、全天、类型、地点 | 可关联 Course 与 Tag；是个人日程的唯一来源 |
-| `Course` | 名称、教师、教室、显示色、图标标识、学期、备注、独立日期覆盖 | 拥有 CourseSession、Assignment、Exam；关联 Task 与 Event；图标标识可为 SF Symbol 或短文字／Emoji |
+| `Course` | 名称、教师、教室、显示色、图标标识、图标图片、学期、备注、独立日期覆盖 | 拥有 CourseSession、Assignment、Exam；关联 Task 与 Event；图标可为 SF Symbol、短文字／Emoji 或压缩后的本机图片 |
 | `CourseSession` | 星期、起止分钟、生效日期、结束日期、单双周、教室覆盖、启用状态 | 课程的重复规则；按日期动态生成展示实例 |
 | `Assignment` | 标题、描述、布置日期、截止日期、完成状态 | 属于 Course；可关联一个可执行 Task |
 | `Exam` | 标题、描述、起止时间、地点 | 属于 Course；动态进入日历与 Today |

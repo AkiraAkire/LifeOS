@@ -50,7 +50,8 @@ final class CoreModelTests: XCTestCase {
     func testCourseRelationshipsPersistInMemory() throws {
         let container = try makeContainer()
         let context = ModelContext(container)
-        let course = Course(name: "材料热力学", symbolName: "atom")
+        let iconData = Data([0x89, 0x50, 0x4E, 0x47])
+        let course = Course(name: "材料热力学", symbolName: "atom", iconImageData: iconData)
         let session = CourseSession(
             weekday: .tuesday,
             startTimeMinutes: 600,
@@ -75,6 +76,7 @@ final class CoreModelTests: XCTestCase {
         XCTAssertEqual(storedCourse.exams.count, 1)
         XCTAssertEqual(storedCourse.sessions.first?.weekday, .tuesday)
         XCTAssertEqual(storedCourse.symbolName, "atom")
+        XCTAssertEqual(storedCourse.iconImageData, iconData)
     }
 
     func testCourseIconSupportsPresetAndCustomText() {
@@ -82,6 +84,7 @@ final class CoreModelTests: XCTestCase {
         XCTAssertEqual(CourseIcon.customIdentifier(from: "  🧪  "), "text:🧪")
         XCTAssertEqual(CourseIcon.customText(from: "text:🧪"), "🧪")
         XCTAssertEqual(CourseIcon.systemSymbolName(from: "text:🧪"), CourseIcon.defaultSymbolName)
+        XCTAssertEqual(CourseIcon.customIdentifier(from: "课程图标测试"), "text:课程图标")
     }
 
     func testProjectKeepsLinkedTasksAndCompletionProgress() throws {
@@ -703,7 +706,8 @@ final class CoreModelTests: XCTestCase {
         let sourceContext = ModelContext(sourceContainer)
         let date = Date(timeIntervalSince1970: 1_800_000_000)
 
-        let course = Course(name: "材料物理", instructor: "李老师", classroom: "一教 203", colorHex: "#5E5CE6", symbolName: "text:🧪", semester: "2026 秋季学期")
+        let iconData = Data([0x89, 0x50, 0x4E, 0x47])
+        let course = Course(name: "材料物理", instructor: "李老师", classroom: "一教 203", colorHex: "#5E5CE6", symbolName: "text:🧪", iconImageData: iconData, semester: "2026 秋季学期")
         let session = CourseSession(
             weekday: .monday,
             startTimeMinutes: 9 * 60,
@@ -800,6 +804,7 @@ final class CoreModelTests: XCTestCase {
         XCTAssertEqual(restoredTask.priority, .high)
         XCTAssertEqual(restoredTask.sortOrder, 2)
         XCTAssertEqual(restoredTask.course?.symbolName, "text:🧪")
+        XCTAssertEqual(restoredTask.course?.iconImageData, iconData)
 
         let restoredEvent = try XCTUnwrap(targetContext.fetch(FetchDescriptor<Event>()).first)
         XCTAssertEqual(restoredEvent.tags.map(\.name), ["学习"])

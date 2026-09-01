@@ -781,7 +781,7 @@ private struct CourseLibraryView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.xl) {
                 LifePageHeader(
-                    eyebrow: "知识空间",
+                    eyebrow: nil,
                     title: "我的课程",
                     subtitle: courses.isEmpty ? "先新建一门课程，开始整理你的学习节奏。" : "选择今天想学习或维护的科目。"
                 )
@@ -825,7 +825,7 @@ private struct CourseLibraryCard: View {
             Button(action: onSelect) {
                 VStack(alignment: .leading, spacing: 0) {
                     HStack(alignment: .top) {
-                        CourseIconView(identifier: course.symbolName, tint: tint, size: 46)
+                        CourseIconView(identifier: course.symbolName, imageData: course.iconImageData, tint: tint, size: 46)
                         Spacer(minLength: AppSpacing.sm)
                         Text(progressText)
                             .font(AppTypography.caption.weight(.semibold))
@@ -923,24 +923,46 @@ private struct CourseLibraryCard: View {
 
 private struct CourseIconView: View {
     let identifier: String
+    let imageData: Data?
     let tint: Color
     let size: CGFloat
 
     var body: some View {
         Group {
-            if let text = CourseIcon.customText(from: identifier) {
+            if let imageData, let image = NSImage(data: imageData) {
+                Image(nsImage: image)
+                    .resizable()
+                    .interpolation(.high)
+                    .scaledToFill()
+            } else if let text = CourseIcon.customText(from: identifier) {
                 Text(text)
                     .font(.system(size: size * 0.48))
+                    .foregroundStyle(tint)
             } else {
                 Image(systemName: CourseIcon.systemSymbolName(from: identifier))
                     .font(.system(size: size * 0.46, weight: .medium))
                     .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(tint)
             }
         }
-        .foregroundStyle(tint)
         .frame(width: size, height: size)
         .background(tint.opacity(0.12), in: RoundedRectangle(cornerRadius: size * 0.28, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: size * 0.28, style: .continuous))
         .accessibilityLabel("课程图标")
+    }
+}
+
+private extension NSImage {
+    func courseIconPNGData(maxDimension: CGFloat = 256) -> Data? {
+        guard size.width > 0, size.height > 0 else { return nil }
+        let scale = min(1, maxDimension / max(size.width, size.height))
+        let targetSize = NSSize(width: size.width * scale, height: size.height * scale)
+        let icon = NSImage(size: targetSize)
+        icon.lockFocus()
+        draw(in: NSRect(origin: .zero, size: targetSize), from: NSRect(origin: .zero, size: size), operation: .sourceOver, fraction: 1)
+        icon.unlockFocus()
+        guard let tiff = icon.tiffRepresentation, let bitmap = NSBitmapImageRep(data: tiff) else { return nil }
+        return bitmap.representation(using: .png, properties: [:])
     }
 }
 
@@ -1002,7 +1024,24 @@ private struct CourseIconOption: Identifiable {
         CourseIconOption(symbolName: "ruler", name: "设计"),
         CourseIconOption(symbolName: "lightbulb", name: "灵感"),
         CourseIconOption(symbolName: "camera", name: "摄影"),
-        CourseIconOption(symbolName: "brain.head.profile", name: "思考")
+        CourseIconOption(symbolName: "brain.head.profile", name: "思考"),
+        CourseIconOption(symbolName: "book.pages", name: "书籍"),
+        CourseIconOption(symbolName: "pencil.and.outline", name: "写作"),
+        CourseIconOption(symbolName: "percent", name: "概率"),
+        CourseIconOption(symbolName: "chart.xyaxis.line", name: "数据"),
+        CourseIconOption(symbolName: "waveform.path.ecg", name: "生物"),
+        CourseIconOption(symbolName: "stethoscope", name: "医学"),
+        CourseIconOption(symbolName: "building.columns", name: "人文"),
+        CourseIconOption(symbolName: "scale.3d", name: "法律"),
+        CourseIconOption(symbolName: "theatermasks", name: "戏剧"),
+        CourseIconOption(symbolName: "car", name: "交通"),
+        CourseIconOption(symbolName: "airplane", name: "航空"),
+        CourseIconOption(symbolName: "fork.knife", name: "饮食"),
+        CourseIconOption(symbolName: "gamecontroller", name: "游戏"),
+        CourseIconOption(symbolName: "basketball", name: "球类"),
+        CourseIconOption(symbolName: "figure.yoga", name: "瑜伽"),
+        CourseIconOption(symbolName: "person.3", name: "社科"),
+        CourseIconOption(symbolName: "newspaper", name: "新闻")
     ]
 }
 
@@ -1018,6 +1057,8 @@ struct CourseEditorView: View {
     @State private var colorHex: String
     @State private var symbolName: String
     @State private var customIconText: String
+    @State private var customIconImageData: Data?
+    @State private var iconImportError: String?
     @State private var usesSemesterDateRange: Bool
     @State private var courseStartDate: Date
     @State private var courseEndDate: Date
@@ -1035,6 +1076,7 @@ struct CourseEditorView: View {
         _colorHex = State(initialValue: course?.colorHex ?? "#6E889A")
         _symbolName = State(initialValue: CourseIcon.customText(from: storedSymbolName) == nil ? storedSymbolName : CourseIcon.defaultSymbolName)
         _customIconText = State(initialValue: CourseIcon.customText(from: storedSymbolName) ?? "")
+        _customIconImageData = State(initialValue: course?.iconImageData)
         _usesSemesterDateRange = State(initialValue: course?.usesSemesterDateRange ?? true)
         _courseStartDate = State(initialValue: effectiveRange.startDate)
         _courseEndDate = State(initialValue: effectiveRange.endDate)
@@ -1056,14 +1098,15 @@ struct CourseEditorView: View {
                         Button {
                             symbolName = option.symbolName
                             customIconText = ""
+                            customIconImageData = nil
                         } label: {
                             Image(systemName: option.symbolName)
                                 .font(.system(size: 17, weight: .medium))
                                 .symbolRenderingMode(.hierarchical)
-                                .foregroundStyle(symbolName == option.symbolName && customIconText.isEmpty ? AppColors.surface : AppColors.course)
+                                .foregroundStyle(symbolName == option.symbolName && customIconText.isEmpty && customIconImageData == nil ? AppColors.surface : AppColors.course)
                                 .frame(maxWidth: .infinity, minHeight: 34)
                                 .background(
-                                    symbolName == option.symbolName && customIconText.isEmpty ? AppColors.course : AppColors.course.opacity(0.10),
+                                    symbolName == option.symbolName && customIconText.isEmpty && customIconImageData == nil ? AppColors.course : AppColors.course.opacity(0.10),
                                     in: RoundedRectangle(cornerRadius: AppRadius.small, style: .continuous)
                                 )
                         }
@@ -1074,15 +1117,27 @@ struct CourseEditorView: View {
                 }
 
                 HStack(spacing: AppSpacing.sm) {
-                    CourseIconView(identifier: resolvedSymbolName, tint: Color(courseHex: colorHex), size: 32)
+                    CourseIconView(identifier: resolvedSymbolName, imageData: customIconImageData, tint: Color(courseHex: colorHex), size: 32)
                     TextField("自定义图标（例如 🧪 或 研）", text: $customIconText)
                         .onChange(of: customIconText) { _, text in
-                            if CourseIcon.customIdentifier(from: text) != nil {
+                            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                            if text.count > 4 {
+                                customIconText = String(text.prefix(4))
+                            } else if !trimmed.isEmpty {
                                 symbolName = CourseIcon.defaultSymbolName
+                                customIconImageData = nil
                             }
                         }
                 }
-                Text("可输入最多 4 个字符或 Emoji；留空时使用上方选择的系统图标。")
+                HStack(spacing: AppSpacing.sm) {
+                    Button(customIconImageData == nil ? "选择图片" : "替换图片", action: chooseCustomIconImage)
+                    if customIconImageData != nil {
+                        Button("移除图片", role: .destructive) {
+                            customIconImageData = nil
+                        }
+                    }
+                }
+                Text("可输入最多 4 个字符或 Emoji，也可选择一张图片；留空时使用上方的系统图标。")
                     .font(AppTypography.caption)
                     .foregroundStyle(AppColors.secondaryText)
             }
@@ -1111,6 +1166,14 @@ struct CourseEditorView: View {
             }
         }
         .formStyle(.grouped).padding().frame(width: 520)
+        .alert("无法使用此图片", isPresented: Binding(
+            get: { iconImportError != nil },
+            set: { if !$0 { iconImportError = nil } }
+        )) {
+            Button("好") { iconImportError = nil }
+        } message: {
+            Text(iconImportError ?? "")
+        }
         .navigationTitle(course == nil ? "新建课程" : "编辑课程")
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button("取消") { dismiss() } }
@@ -1132,9 +1195,10 @@ struct CourseEditorView: View {
             course.note = note.nilIfEmpty
             course.colorHex = colorHex
             course.symbolName = resolvedSymbolName
+            course.iconImageData = customIconImageData
             course.setDateRange(selectedRange, usesSemesterRange: usesSemesterDateRange)
         } else {
-            let newCourse = Course(name: name.trimmingCharacters(in: .whitespacesAndNewlines), instructor: instructor.nilIfEmpty, classroom: classroom.nilIfEmpty, colorHex: colorHex, symbolName: resolvedSymbolName, semester: semester.nilIfEmpty, note: note.nilIfEmpty)
+            let newCourse = Course(name: name.trimmingCharacters(in: .whitespacesAndNewlines), instructor: instructor.nilIfEmpty, classroom: classroom.nilIfEmpty, colorHex: colorHex, symbolName: resolvedSymbolName, iconImageData: customIconImageData, semester: semester.nilIfEmpty, note: note.nilIfEmpty)
             newCourse.setDateRange(selectedRange, usesSemesterRange: usesSemesterDateRange)
             modelContext.insert(newCourse)
         }
@@ -1143,6 +1207,23 @@ struct CourseEditorView: View {
 
     private var resolvedSymbolName: String {
         CourseIcon.customIdentifier(from: customIconText) ?? symbolName
+    }
+
+    private func chooseCustomIconImage() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.png, .jpeg, .heic, .tiff, .bmp]
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        guard panel.runModal() == .OK, let url = panel.url, let image = NSImage(contentsOf: url), let data = image.courseIconPNGData() else {
+            if panel.url != nil { iconImportError = "请选择可读取的图片文件。" }
+            return
+        }
+        guard data.count <= 1_000_000 else {
+            iconImportError = "图片处理后仍超过 1 MB，请选择更简单的图标。"
+            return
+        }
+        customIconImageData = data
+        customIconText = ""
     }
 
     private func dateRangeText(_ range: SemesterDateRange) -> String {
@@ -1172,7 +1253,7 @@ struct CourseDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.xl) {
                 HStack(spacing: AppSpacing.md) {
-                    CourseIconView(identifier: course.symbolName, tint: Color(courseHex: course.colorHex), size: 46)
+                    CourseIconView(identifier: course.symbolName, imageData: course.iconImageData, tint: Color(courseHex: course.colorHex), size: 46)
                     LifePageHeader(eyebrow: nil, title: course.name, subtitle: nil)
                 }
 

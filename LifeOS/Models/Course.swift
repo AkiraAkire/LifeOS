@@ -34,6 +34,7 @@ final class Course {
     var classroom: String?
     var colorHex: String
     var symbolName: String = CourseIcon.defaultSymbolName
+    var iconImageData: Data?
     var semester: String?
     var note: String?
     /// Nil values mean that this course follows the timetable semester range.
@@ -55,6 +56,7 @@ final class Course {
         classroom: String? = nil,
         colorHex: String = "#6E889A",
         symbolName: String = CourseIcon.defaultSymbolName,
+        iconImageData: Data? = nil,
         semester: String? = nil,
         note: String? = nil,
         startDateOverride: Date? = nil,
@@ -67,6 +69,7 @@ final class Course {
         self.classroom = classroom
         self.colorHex = colorHex
         self.symbolName = symbolName
+        self.iconImageData = iconImageData
         self.semester = semester
         self.note = note
         self.startDateOverride = startDateOverride
