@@ -2009,7 +2009,7 @@ struct CalendarView: View {
                 if proxy.size.width >= 980 {
                     HSplitView {
                         calendarContent(presentInspectorOnMonthSelection: false)
-                            .frame(minWidth: 460, maxWidth: .infinity, maxHeight: .infinity)
+                            .frame(minWidth: 620, idealWidth: 760, maxWidth: .infinity, maxHeight: .infinity)
 
                         dayInspector
                             .frame(minWidth: 260, idealWidth: 320, maxWidth: 360, maxHeight: .infinity)
@@ -2051,7 +2051,7 @@ struct CalendarView: View {
     private func calendarContent(presentInspectorOnMonthSelection: Bool) -> some View {
         switch mode {
         case .month:
-            MonthCalendarGrid(
+            CalendarMonthContent(
                 date: $selectedDate,
                 journalEntries: journalEntries,
                 habits: displayedHabits,
@@ -2471,6 +2471,154 @@ private struct WeekCalendarItemCard: View {
     }
 }
 
+/// Gives the main month grid a persistent date navigator when the available
+/// width permits it. Both representations operate on the same selected date.
+private struct CalendarMonthContent: View {
+    @Binding var date: Date
+    let journalEntries: [JournalEntry]
+    let habits: [Habit]
+    let courses: [Course]
+    let events: [Event]
+    let tasks: [Task]
+    let exams: [Exam]
+    let onDateSelected: () -> Void
+
+    var body: some View {
+        GeometryReader { proxy in
+            if proxy.size.width >= 620 {
+                HStack(alignment: .top, spacing: AppSpacing.xs) {
+                    MiniMonthCalendarNavigator(date: $date)
+                        .frame(width: 160)
+                        .padding(.leading, AppSpacing.page)
+
+                    MonthCalendarGrid(
+                        date: $date,
+                        journalEntries: journalEntries,
+                        habits: habits,
+                        courses: courses,
+                        events: events,
+                        tasks: tasks,
+                        exams: exams,
+                        onDateSelected: onDateSelected
+                    )
+                }
+            } else {
+                MonthCalendarGrid(
+                    date: $date,
+                    journalEntries: journalEntries,
+                    habits: habits,
+                    courses: courses,
+                    events: events,
+                    tasks: tasks,
+                    exams: exams,
+                    onDateSelected: onDateSelected
+                )
+            }
+        }
+    }
+}
+
+/// Shared six-week month geometry keeps the main grid and the navigator
+/// perfectly aligned, including their Sunday/Monday start configuration.
+enum MonthCalendarLayout {
+    static func visibleDays(for date: Date, calendar: Calendar = .current) -> [Date] {
+        let monthStart = calendar.dateInterval(of: .month, for: date)?.start ?? date
+        let weekdayOffset = (calendar.component(.weekday, from: monthStart) - calendar.firstWeekday + 7) % 7
+        let gridStart = calendar.date(byAdding: .day, value: -weekdayOffset, to: monthStart) ?? monthStart
+
+        return (0..<42).compactMap { calendar.date(byAdding: .day, value: $0, to: gridStart) }
+    }
+
+    static func weekdaySymbols(calendar: Calendar = .current) -> [String] {
+        let symbols = ["日", "一", "二", "三", "四", "五", "六"]
+        let firstIndex = max(0, calendar.firstWeekday - 1)
+        return Array(symbols[firstIndex...]) + Array(symbols[..<firstIndex])
+    }
+}
+
+/// A compact, always-visible-in-normal-widths date picker for the month view.
+/// It intentionally uses native buttons rather than a second persisted state.
+private struct MiniMonthCalendarNavigator: View {
+    @Binding var date: Date
+    private let calendar = Calendar.current
+
+    var body: some View {
+        let monthStart = calendar.dateInterval(of: .month, for: date)?.start ?? date
+        let visibleDays = MonthCalendarLayout.visibleDays(for: date, calendar: calendar)
+        let columns = Array(repeating: GridItem(.flexible(minimum: 0), spacing: AppSpacing.xxs), count: 7)
+
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            HStack(spacing: AppSpacing.xs) {
+                Button(action: { moveMonth(by: -1) }) {
+                    Image(systemName: "chevron.left")
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("上一月")
+
+                Text(monthStart.formatted(.dateTime.locale(Locale(identifier: "zh_CN")).year().month(.wide)))
+                    .font(AppTypography.caption.weight(.semibold))
+                    .foregroundStyle(AppColors.primaryText)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .center)
+
+                Button(action: { moveMonth(by: 1) }) {
+                    Image(systemName: "chevron.right")
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("下一月")
+            }
+            .foregroundStyle(AppColors.secondaryText)
+
+            LazyVGrid(columns: columns, spacing: AppSpacing.xxs) {
+                ForEach(MonthCalendarLayout.weekdaySymbols(calendar: calendar), id: \.self) { symbol in
+                    Text(symbol)
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(AppColors.secondaryText)
+                        .frame(maxWidth: .infinity)
+                }
+
+                ForEach(visibleDays, id: \.self) { day in
+                    Button {
+                        date = day
+                    } label: {
+                        Text("\(calendar.component(.day, from: day))")
+                            .font(.system(size: 10, weight: calendar.isDate(day, inSameDayAs: date) ? .bold : .regular, design: .rounded))
+                            .foregroundStyle(dayColor(for: day, monthStart: monthStart))
+                            .frame(maxWidth: .infinity, minHeight: 18)
+                            .background(selectionBackground(for: day), in: Circle())
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(day.formatted(.dateTime.locale(Locale(identifier: "zh_CN")).year().month().day().weekday(.wide)))
+                }
+            }
+        }
+        .padding(AppSpacing.sm)
+        .background(AppColors.surface.opacity(0.56), in: RoundedRectangle(cornerRadius: AppRadius.large, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: AppRadius.large, style: .continuous)
+                .stroke(AppColors.surfaceBorder, lineWidth: 1)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("日期导航")
+    }
+
+    private func moveMonth(by value: Int) {
+        date = calendar.date(byAdding: .month, value: value, to: date) ?? date
+    }
+
+    private func dayColor(for day: Date, monthStart: Date) -> Color {
+        if calendar.isDate(day, inSameDayAs: date) { return AppColors.surface }
+        if !calendar.isDate(day, equalTo: monthStart, toGranularity: .month) { return AppColors.secondaryText.opacity(0.45) }
+        if calendar.isDateInToday(day) { return AppColors.accent }
+        return AppColors.primaryText
+    }
+
+    private func selectionBackground(for day: Date) -> Color {
+        calendar.isDate(day, inSameDayAs: date) ? AppColors.accent : .clear
+    }
+}
+
 /// Quiet monthly overview: a date is a life-status summary rather than a
 /// miniature agenda. Detailed items remain available from the day inspector.
 struct MonthCalendarGrid: View {
@@ -2486,10 +2634,8 @@ struct MonthCalendarGrid: View {
     var body: some View {
         let calendar = Calendar.current
         let monthStart = calendar.dateInterval(of: .month, for: date)?.start ?? date
-        let weekdayOffset = (calendar.component(.weekday, from: monthStart) - calendar.firstWeekday + 7) % 7
-        let gridStart = calendar.date(byAdding: .day, value: -weekdayOffset, to: monthStart) ?? monthStart
-        let visibleDays = (0..<42).compactMap { calendar.date(byAdding: .day, value: $0, to: gridStart) }
-        let weekdaySymbols = orderedWeekdaySymbols(calendar: calendar)
+        let visibleDays = MonthCalendarLayout.visibleDays(for: date, calendar: calendar)
+        let weekdaySymbols = MonthCalendarLayout.weekdaySymbols(calendar: calendar)
 
         GeometryReader { proxy in
             // A six-row grid keeps the month stable as the selected month
@@ -2555,11 +2701,6 @@ struct MonthCalendarGrid: View {
         }
     }
 
-    private func orderedWeekdaySymbols(calendar: Calendar) -> [String] {
-        let symbols = ["日", "一", "二", "三", "四", "五", "六"]
-        let firstIndex = max(0, calendar.firstWeekday - 1)
-        return Array(symbols[firstIndex...]) + Array(symbols[..<firstIndex])
-    }
 }
 
 private struct MonthCalendarDayCell: View {
