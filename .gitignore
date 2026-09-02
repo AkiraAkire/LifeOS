@@ -5,6 +5,8 @@
 DerivedData/
 build/
 dist/
+# Local interaction demos are for design review only and must not be published.
+work/
 *.xcuserstate
 *.xcscmblueprint
 xcuserdata/
