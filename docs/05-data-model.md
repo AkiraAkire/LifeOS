@@ -1,13 +1,13 @@
 # SwiftData 数据模型与本机偏好
 
-> 更新至 2026-08-30。SwiftData 负责用户生活数据；展示偏好与自动备份元数据不以额外业务实体重复保存。
+> 更新至 2026-09-02。SwiftData 负责用户生活数据；展示偏好与自动备份元数据不以额外业务实体重复保存。
 
 ## 当前持久化实体
 
 | 实体 | 核心字段 | 关键关系／语义 |
 | --- | --- | --- |
 | `AppConfiguration` | `id`、`createdAt` | SwiftData 容器的应用级锚点；当前通用偏好仍由 UserDefaults 保存 |
-| `Task` | 标题、描述、计划日期、具体起止时间、截止日期、优先级、状态、完成时间、排序值 | 可关联 Course、Project、Assignment 与 Tag；Today 拖放使用 `plannedDate` |
+| `Task` | 标题、描述、计划日期、具体起止时间、截止日期、优先级、状态、完成时间、排序值 | 可关联 Course、Project、Assignment 与 Tag；从任务页设为今日使用 `plannedDate` |
 | `Event` | 标题、描述、起止时间、全天、类型、地点 | 可关联 Course 与 Tag；是个人日程的唯一来源 |
 | `Course` | 名称、教师、教室、显示色、图标标识、图标图片、学期、备注、独立日期覆盖 | 拥有 CourseSession、Assignment、Exam；关联 Task 与 Event；图标可为 SF Symbol、短文字／Emoji 或压缩后的本机图片 |
 | `CourseSession` | 星期、起止分钟、生效日期、结束日期、单双周、教室覆盖、启用状态 | 课程的重复规则；按日期动态生成展示实例 |
@@ -28,6 +28,8 @@
 | 展示习惯 UUID 集合 | UserDefaults | 控制 Calendar／Journal 显示哪些 Habit，不修改打卡历史 |
 | 外观、启动页、周起始日、24 小时制 | UserDefaults / `@AppStorage` | 通用界面偏好 |
 | `ScheduleItem`、`TodayOverview`、`DailyLifeOverview`、`DailyHabitStatus` | 内存动态计算 | 只用于聚合展示，绝不持久化为重复汇总 |
+
+下一阶段的“今日节奏”“课程成长档案”“生活回放”和“周收束”同样必须由这些唯一来源动态派生；在没有明确性能证据和迁移设计前，不增加日／周统计实体。
 
 ## 关系与删除规则
 

@@ -7,108 +7,124 @@ import UniformTypeIdentifiers
 
 struct TodayView: View {
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var navigation: AppNavigationCoordinator
     @Query(sort: \Course.name) private var courses: [Course]
     @Query(sort: \Event.startDate) private var events: [Event]
     @Query(sort: \Task.createdAt, order: .reverse) private var tasks: [Task]
     @Query(sort: \Exam.startDate) private var exams: [Exam]
-    @State private var isReceivingTodayTask = false
 
     private let today = Date.now
 
     var body: some View {
         let timeline = ScheduleAggregationService.items(for: today, courses: courses, events: events, tasks: tasks, exams: exams)
         let semesterRange = SemesterDateRangeStore.load()
-        let todayTasks = tasks.filter { TaskListGrouping.isScheduled($0, on: today) && $0.status != .completed }
-        let taskList = tasks
-            .filter { $0.status != .completed && !TaskListGrouping.isScheduled($0, on: today) }
-            .sorted { ($0.deadline ?? .distantFuture) < ($1.deadline ?? .distantFuture) }
+        let todayTasks = TaskListGrouping.deadlineOrdered(tasks.filter { TaskListGrouping.isScheduled($0, on: today) })
+        let outstandingTasks = todayTasks.filter { $0.status != .completed }
+        let completedCount = todayTasks.count - outstandingTasks.count
+        let nextItem = ScheduleAggregationService.currentOrNextItem(in: timeline)
 
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.xl) {
-                LifePageHeader(
-                    eyebrow: greeting,
-                    title: today.formatted(.dateTime.locale(Locale(identifier: "zh_CN")).year().month(.wide).day().weekday(.wide)),
-                    subtitle: "\(semesterWeekText(for: today, in: semesterRange)) · 专注当下，把今天过好。"
-                )
-
-                VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                    LifeSectionHeader("今日时间轴", subtitle: timeline.isEmpty ? nil : "按时间排列")
-                    LifeSurface {
-                        if timeline.isEmpty {
-                            EmptyInlineView(text: "今天还没有带具体时间的安排。")
-                        } else {
-                            TimelineList(items: timeline)
-                        }
-                    }
+                HStack(alignment: .top, spacing: AppSpacing.lg) {
+                    LifePageHeader(
+                        eyebrow: greeting,
+                        title: "今天，按自己的节奏前进",
+                        subtitle: "\(today.formatted(.dateTime.locale(Locale(identifier: "zh_CN")).year().month(.wide).day().weekday(.wide))) · \(semesterWeekText(for: today, in: semesterRange))"
+                    )
+                    Spacer(minLength: AppSpacing.md)
+                    Button("去任务页安排今天") { navigation.showTasks() }
+                        .buttonStyle(.bordered)
                 }
 
-                HStack(alignment: .top, spacing: AppSpacing.lg) {
-                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                        LifeSectionHeader("今日任务", subtitle: "拖入任务即可安排今天")
-                        LifeSurface {
-                            if todayTasks.isEmpty {
-                                EmptyInlineView(text: isReceivingTodayTask ? "松开即可加入今日任务" : "将右侧任务拖到这里，安排在今天完成。")
-                            } else {
-                                VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                                    ForEach(todayTasks, id: \.id) { task in
-                                        TaskRow(task: task, dateStyle: .today) { complete(task) }
-                                    }
-                                }
-                            }
-                        }
-                        .overlay {
-                            RoundedRectangle(cornerRadius: AppRadius.large, style: .continuous)
-                                .stroke(AppColors.accent, lineWidth: isReceivingTodayTask ? 2 : 0)
-                        }
-                        .dropDestination(for: String.self) { identifiers, _ in
-                            addToToday(identifiers)
-                        } isTargeted: { isReceivingTodayTask = $0 }
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .top, spacing: AppSpacing.lg) {
+                        scheduleColumn(timeline: timeline, nextItem: nextItem)
+                            .frame(minWidth: 430, maxWidth: .infinity, alignment: .topLeading)
+                        focusColumn(tasks: outstandingTasks, completedCount: completedCount, totalCount: todayTasks.count)
+                            .frame(minWidth: 300, idealWidth: 340, maxWidth: 380, alignment: .topLeading)
                     }
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
-
-                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                        LifeSectionHeader("任务列表", subtitle: "按截止日期排序")
-                        LifeSurface {
-                            if taskList.isEmpty {
-                                EmptyInlineView(text: "没有可安排的未完成任务。")
-                            } else {
-                                VStack(alignment: .leading, spacing: 0) {
-                                    ForEach(taskList, id: \.id) { task in
-                                        HStack(spacing: AppSpacing.sm) {
-                                            Image(systemName: "flag")
-                                                .foregroundStyle(AppColors.deadline)
-                                            Text(task.title)
-                                                .font(AppTypography.body)
-                                                .foregroundStyle(AppColors.primaryText)
-                                                .lineLimit(1)
-                                            Spacer()
-                                            if let deadline = task.deadline {
-                                                Text("截止 \(localizedDate(deadline))")
-                                                    .font(AppTypography.metadata)
-                                                    .foregroundStyle(AppColors.secondaryText)
-                                            } else {
-                                                Text("未设置截止日期")
-                                                    .font(AppTypography.metadata)
-                                                    .foregroundStyle(AppColors.secondaryText)
-                                            }
-                                        }
-                                        .padding(.vertical, AppSpacing.xs)
-                                        .contentShape(.rect)
-                                        .draggable(task.id.uuidString)
-                                        if task.id != taskList.last?.id {
-                                            Divider().overlay(AppColors.divider.opacity(0.65))
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                    VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                        scheduleColumn(timeline: timeline, nextItem: nextItem)
+                        focusColumn(tasks: outstandingTasks, completedCount: completedCount, totalCount: todayTasks.count)
                     }
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
             }
             .padding(AppSpacing.page)
         }
         .background(AppColors.canvas)
+    }
+
+    private func scheduleColumn(timeline: [ScheduleItem], nextItem: ScheduleItem?) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.lg) {
+            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                LifeSectionHeader("接下来", subtitle: nextItem == nil ? "今天没有后续安排" : "顺着时间，专注当前")
+                LifeSurface(padding: AppSpacing.md) {
+                    if let nextItem {
+                        HStack(spacing: AppSpacing.md) {
+                            Text(nextItem.startDate.formatted(.dateTime.locale(Locale(identifier: "zh_CN")).hour().minute()))
+                                .font(AppTypography.metric)
+                                .foregroundStyle(color(for: nextItem.category))
+                                .frame(minWidth: 62, alignment: .leading)
+                            VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                                Text(nextItem.title)
+                                    .font(AppTypography.bodyEmphasis)
+                                    .foregroundStyle(AppColors.primaryText)
+                                    .lineLimit(2)
+                                Label(nextItem.category.label, systemImage: nextItem.category.symbolName)
+                                    .font(AppTypography.caption)
+                                    .foregroundStyle(AppColors.secondaryText)
+                            }
+                            Spacer(minLength: AppSpacing.xs)
+                            if let endDate = nextItem.endDate {
+                                Text("至 \(endDate.formatted(.dateTime.locale(Locale(identifier: "zh_CN")).hour().minute()))")
+                                    .font(AppTypography.caption)
+                                    .foregroundStyle(AppColors.secondaryText)
+                            }
+                        }
+                    } else {
+                        EmptyInlineView(text: "把时间留给自己，或去任务页安排今天的重点。")
+                    }
+                }
+            }
+
+            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                LifeSectionHeader("今日时间线", subtitle: timeline.isEmpty ? nil : "按时间排列")
+                LifeSurface {
+                    if timeline.isEmpty {
+                        EmptyInlineView(text: "今天还没有带具体时间的安排。")
+                    } else {
+                        TimelineList(items: timeline)
+                    }
+                }
+            }
+        }
+    }
+
+    private func focusColumn(tasks: [Task], completedCount: Int, totalCount: Int) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            LifeSectionHeader("今日重点", subtitle: totalCount == 0 ? "暂未安排任务" : "已完成 \(completedCount) / \(totalCount)")
+            LifeSurface {
+                if tasks.isEmpty {
+                    EmptyInlineView(text: totalCount == 0 ? "去任务页选择要在今天完成的任务。" : "今天安排的任务已全部完成。")
+                } else {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(tasks.prefix(4), id: \.id) { task in
+                            TaskRow(task: task, dateStyle: .today) { complete(task) }
+                            if task.id != tasks.prefix(4).last?.id {
+                                Divider().overlay(AppColors.divider.opacity(0.65))
+                            }
+                        }
+                        if tasks.count > 4 {
+                            Button("还有 \(tasks.count - 4) 项今日任务，前往任务页查看") { navigation.showTasks() }
+                                .buttonStyle(.plain)
+                                .font(AppTypography.caption.weight(.medium))
+                                .foregroundStyle(AppColors.accent)
+                                .padding(.top, AppSpacing.sm)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private var greeting: String {
@@ -126,21 +142,13 @@ struct TodayView: View {
         try? modelContext.save()
     }
 
-    /// Dragging assigns a task to Today through the shared scheduling rule.
-    private func addToToday(_ identifiers: [String]) -> Bool {
-        let draggedTasks = identifiers.compactMap { identifier in
-            UUID(uuidString: identifier).flatMap { id in tasks.first { $0.id == id } }
+    private func color(for category: ScheduleCategory) -> Color {
+        switch category {
+        case .course: AppColors.course
+        case .event: AppColors.calendar
+        case .task: AppColors.task
+        case .exam: AppColors.deadline
         }
-        guard !draggedTasks.isEmpty else { return false }
-
-        for task in draggedTasks {
-            try? InboxCaptureService.schedule(task, on: today, in: modelContext)
-        }
-        return true
-    }
-
-    private func localizedDate(_ date: Date) -> String {
-        date.formatted(.dateTime.locale(Locale(identifier: "zh_CN")).month().day())
     }
 
     private func semesterWeekText(for date: Date, in range: SemesterDateRange) -> String {
@@ -176,53 +184,31 @@ struct TasksView: View {
     @State private var editorPresented = false
     @State private var selectedTask: Task?
     @State private var inspectorPresented = false
+    @State private var isReceivingTodayTask = false
+    @State private var completedCalendarMonth = Date.now
+    @State private var selectedCompletedDate = Date.now
 
     var body: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.lg) {
-            LifePageHeader(
-                eyebrow: nil,
-                title: filter.rawValue,
-                subtitle: filterSubtitle
-            )
+        ScrollView {
+            VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                LifePageHeader(
+                    eyebrow: nil,
+                    title: filter == .all ? "把今天真正要做的事放在前面" : filter.rawValue,
+                    subtitle: filterSubtitle
+                )
 
-            Picker("任务范围", selection: $filter) {
-                ForEach(TaskFilter.allCases) { filter in
-                    Text("\(filter.rawValue) \(taskCount(for: filter))").tag(filter)
-                }
-            }
-            .pickerStyle(.segmented)
-            .frame(maxWidth: 440)
-
-            if filteredTasks.isEmpty {
-                Spacer()
-                EmptyInlineView(text: filter == .completed ? "还没有已完成任务。" : "这里还没有任务，使用右上角“新建任务”开始记录。")
-                Spacer()
-            } else {
-                List {
-                    ForEach(filteredTasks, id: \.id) { task in
-                        TaskRow(task: task, dateStyle: .taskList) { toggle(task) }
-                            .contentShape(.rect)
-                            .onTapGesture { openInspector(for: task) }
-                            .contextMenu {
-                                Button("编辑任务") { openInspector(for: task) }
-                                if TaskListGrouping.isScheduled(task, on: .now) {
-                                    Button("移出今日任务") { removeFromToday(task) }
-                                } else {
-                                    Button("设为今日任务") { addToToday(task) }
-                                }
-                                Divider()
-                                Button("删除任务", role: .destructive) { delete(task) }
-                            }
-                            .listRowInsets(EdgeInsets(top: AppSpacing.xs, leading: AppSpacing.md, bottom: AppSpacing.xs, trailing: AppSpacing.md))
-                            .listRowBackground(AppColors.surface.opacity(0.7))
-                            .listRowSeparatorTint(AppColors.divider)
+                Picker("任务范围", selection: $filter) {
+                    ForEach(TaskFilter.allCases) { filter in
+                        Text("\(filter.rawValue) \(taskCount(for: filter))").tag(filter)
                     }
                 }
-                .listStyle(.inset)
-                .scrollContentBackground(.hidden)
+                .pickerStyle(.segmented)
+                .frame(maxWidth: 440)
+
+                taskContent
             }
+            .padding(AppSpacing.page)
         }
-        .padding(AppSpacing.page)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(AppColors.canvas)
         .toolbar {
@@ -247,33 +233,205 @@ struct TasksView: View {
         }
     }
 
-    private var filteredTasks: [Task] {
+    @ViewBuilder
+    private var taskContent: some View {
         switch filter {
         case .today:
-            return tasks.filter { TaskListGrouping.isScheduled($0, on: .now) && $0.status != .completed }
-                .sorted { ($0.deadline ?? .distantFuture) < ($1.deadline ?? .distantFuture) }
+            todayActionSection
         case .all:
-            return tasks.filter { $0.status != .completed }
-                .sorted { ($0.deadline ?? .distantFuture) < ($1.deadline ?? .distantFuture) }
+            todayProgress
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .top, spacing: AppSpacing.lg) {
+                    todayActionSection.frame(minWidth: 300, maxWidth: .infinity, alignment: .topLeading)
+                    deadlineTaskSection.frame(minWidth: 300, maxWidth: .infinity, alignment: .topLeading)
+                }
+                VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                    todayActionSection
+                    deadlineTaskSection
+                }
+            }
         case .completed:
-            return tasks.filter { $0.status == .completed }
-                .sorted { ($0.completedAt ?? .distantPast) > ($1.completedAt ?? .distantPast) }
+            completedTaskSection
         }
+    }
+
+    private var todayTasks: [Task] {
+        TaskListGrouping.deadlineOrdered(tasks.filter {
+            $0.status != .completed && TaskListGrouping.isScheduled($0, on: .now)
+        })
+    }
+
+    private var deadlineTasks: [Task] {
+        TaskListGrouping.deadlineOrdered(tasks.filter {
+            $0.status != .completed && !TaskListGrouping.isScheduled($0, on: .now)
+        })
+    }
+
+    private var completedTasks: [Task] {
+        tasks.filter { $0.status == .completed }
+            .sorted { ($0.completedAt ?? .distantPast) > ($1.completedAt ?? .distantPast) }
+    }
+
+    private var selectedCompletedTasks: [Task] {
+        TaskListGrouping.completedTasks(on: selectedCompletedDate, from: tasks)
+    }
+
+    private var todayProgress: some View {
+        let allTodayTasks = tasks.filter { TaskListGrouping.isScheduled($0, on: .now) }
+        let completedCount = allTodayTasks.filter { $0.status == .completed }.count
+        let progress = allTodayTasks.isEmpty ? 0 : Double(completedCount) / Double(allTodayTasks.count)
+
+        return LifeSurface(padding: AppSpacing.md) {
+            HStack(spacing: AppSpacing.md) {
+                Image(systemName: completedCount == allTodayTasks.count && !allTodayTasks.isEmpty ? "checkmark.circle.fill" : "target")
+                    .foregroundStyle(AppColors.task)
+                VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                    Text("今日进度")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.secondaryText)
+                    Text(allTodayTasks.isEmpty ? "还没有安排今日任务" : "已完成 \(completedCount) / \(allTodayTasks.count)")
+                        .font(AppTypography.bodyEmphasis)
+                        .foregroundStyle(AppColors.primaryText)
+                }
+                Spacer(minLength: AppSpacing.md)
+                ProgressView(value: progress)
+                    .tint(AppColors.task)
+                    .frame(width: 140)
+                    .accessibilityLabel("今日任务完成 \(completedCount) / \(allTodayTasks.count)")
+            }
+        }
+    }
+
+    private var todayActionSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            LifeSectionHeader("今日任务", subtitle: "从任务列表拖入即可安排今天")
+            LifeSurface {
+                if todayTasks.isEmpty {
+                    EmptyInlineView(text: isReceivingTodayTask ? "松开即可加入今日任务" : "今天还没有安排。可将右侧任务拖到这里，或在任务菜单中设为今日任务。")
+                } else {
+                    taskRows(todayTasks, dateStyle: .today, draggable: false)
+                }
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: AppRadius.large, style: .continuous)
+                    .stroke(AppColors.accent, lineWidth: isReceivingTodayTask ? 2 : 0)
+            }
+            .dropDestination(for: String.self, action: addToToday, isTargeted: { isReceivingTodayTask = $0 })
+        }
+    }
+
+    private var deadlineTaskSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            LifeSectionHeader("按截止日期", subtitle: deadlineTasks.isEmpty ? "没有待安排任务" : "\(deadlineTasks.count) 项待安排")
+            LifeSurface {
+                if deadlineTasks.isEmpty {
+                    EmptyInlineView(text: "所有未完成任务都已安排到今天。")
+                } else {
+                    taskRows(deadlineTasks, dateStyle: .taskList, draggable: true)
+                }
+            }
+        }
+    }
+
+    private var completedTaskSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            LifeSectionHeader("完成回顾", subtitle: completedTasks.isEmpty ? nil : "累计 \(completedTasks.count) 项")
+            if completedTasks.isEmpty {
+                LifeSurface {
+                    EmptyInlineView(text: "还没有已完成任务。完成任务后会在这里按日期回顾。")
+                }
+            } else {
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .top, spacing: AppSpacing.lg) {
+                        TaskCompletionMiniCalendar(
+                            selectedDate: $selectedCompletedDate,
+                            displayedMonth: $completedCalendarMonth,
+                            tasks: tasks
+                        )
+                        .frame(width: 360)
+
+                        completedDayDetail
+                            .frame(minWidth: 320, maxWidth: .infinity, alignment: .topLeading)
+                    }
+
+                    VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                        TaskCompletionMiniCalendar(
+                            selectedDate: $selectedCompletedDate,
+                            displayedMonth: $completedCalendarMonth,
+                            tasks: tasks
+                        )
+                        completedDayDetail
+                    }
+                }
+            }
+        }
+    }
+
+    private var completedDayDetail: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            LifeSectionHeader(
+                selectedCompletedDate.formatted(.dateTime.locale(Locale(identifier: "zh_CN")).month().day()),
+                subtitle: selectedCompletedTasks.isEmpty ? "当天没有完成任务" : "已完成 \(selectedCompletedTasks.count) 项"
+            )
+            LifeSurface {
+                if selectedCompletedTasks.isEmpty {
+                    EmptyInlineView(text: "选择有完成记录的日期查看具体任务。")
+                } else {
+                    taskRows(selectedCompletedTasks, dateStyle: .taskList, draggable: false)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func taskRows(_ items: [Task], dateStyle: TaskRowDateStyle, draggable: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(items, id: \.id) { task in
+                if draggable {
+                    taskRow(task, dateStyle: dateStyle)
+                        .draggable(task.id.uuidString)
+                } else {
+                    taskRow(task, dateStyle: dateStyle)
+                }
+                if task.id != items.last?.id {
+                    Divider().overlay(AppColors.divider.opacity(0.65))
+                }
+            }
+        }
+    }
+
+    private func taskRow(_ task: Task, dateStyle: TaskRowDateStyle) -> some View {
+        TaskRow(task: task, dateStyle: dateStyle) { toggle(task) }
+            .contentShape(.rect)
+            .onTapGesture { openInspector(for: task) }
+            .contextMenu { taskContextMenu(for: task) }
+    }
+
+    @ViewBuilder
+    private func taskContextMenu(for task: Task) -> some View {
+        Button("编辑任务") { openInspector(for: task) }
+        if TaskListGrouping.isScheduled(task, on: .now) {
+            Button("移出今日任务") { removeFromToday(task) }
+        } else {
+            Button("设为今日任务") { addToToday(task) }
+        }
+        Divider()
+        Button("删除任务", role: .destructive) { delete(task) }
     }
 
     private var filterSubtitle: String {
         switch filter {
         case .today: "今天只保留真正要完成的事项"
-        case .all: "按截止日期整理所有未完成任务"
+        case .all: "先安排今天，再按截止日期整理其余任务"
         case .completed: "回顾已经完成的事项"
         }
     }
 
     private func taskCount(for filter: TaskFilter) -> Int {
         switch filter {
-        case .today: return tasks.filter { TaskListGrouping.isScheduled($0, on: .now) && $0.status != .completed }.count
+        case .today: return todayTasks.count
         case .all: return tasks.filter { $0.status != .completed }.count
-        case .completed: return tasks.filter { $0.status == .completed }.count
+        case .completed: return completedTasks.count
         }
     }
 
@@ -303,11 +461,126 @@ struct TasksView: View {
     private func addToToday(_ task: Task) {
         try? InboxCaptureService.schedule(task, on: .now, in: modelContext)
     }
+
+    private func addToToday(_ identifiers: [String], _ location: CGPoint) -> Bool {
+        let draggedTasks = identifiers.compactMap { identifier in
+            UUID(uuidString: identifier).flatMap { id in tasks.first { $0.id == id } }
+        }
+        guard !draggedTasks.isEmpty else { return false }
+
+        for task in draggedTasks {
+            addToToday(task)
+        }
+        return true
+    }
 }
 
 enum TaskRowDateStyle {
     case today
     case taskList
+}
+
+/// Compact completion history derived entirely from Task.completedAt.
+private struct TaskCompletionMiniCalendar: View {
+    @Binding var selectedDate: Date
+    @Binding var displayedMonth: Date
+    let tasks: [Task]
+
+    private let calendar = Calendar.current
+
+    var body: some View {
+        let monthStart = calendar.dateInterval(of: .month, for: displayedMonth)?.start ?? displayedMonth
+        let days = JournalMonthCalendarLayout.visibleDays(for: displayedMonth, calendar: calendar)
+        let columns = Array(repeating: GridItem(.flexible(minimum: 0), spacing: AppSpacing.xxs), count: 7)
+
+        LifeSurface(padding: AppSpacing.sm) {
+            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                HStack(spacing: AppSpacing.xs) {
+                    Button(action: { moveMonth(by: -1) }) {
+                        Image(systemName: "chevron.left")
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("查看上个月完成记录")
+
+                    Text(monthStart.formatted(.dateTime.locale(Locale(identifier: "zh_CN")).year().month(.wide)))
+                        .font(AppTypography.bodyEmphasis)
+                        .foregroundStyle(AppColors.primaryText)
+                        .frame(maxWidth: .infinity)
+
+                    Button(action: { moveMonth(by: 1) }) {
+                        Image(systemName: "chevron.right")
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("查看下个月完成记录")
+                }
+                .foregroundStyle(AppColors.secondaryText)
+
+                LazyVGrid(columns: columns, spacing: AppSpacing.xxs) {
+                    ForEach(JournalMonthCalendarLayout.weekdaySymbols(calendar: calendar), id: \.self) { symbol in
+                        Text(symbol)
+                            .font(AppTypography.caption.weight(.medium))
+                            .foregroundStyle(AppColors.secondaryText)
+                            .frame(maxWidth: .infinity)
+                    }
+
+                    ForEach(days, id: \.self) { day in
+                        calendarDay(day, monthStart: monthStart)
+                    }
+                }
+            }
+        }
+        .accessibilityLabel("已完成任务日历")
+    }
+
+    private func calendarDay(_ day: Date, monthStart: Date) -> some View {
+        let count = TaskListGrouping.completedTasks(on: day, from: tasks, calendar: calendar).count
+        let isSelected = calendar.isDate(day, inSameDayAs: selectedDate)
+        let isCurrentMonth = calendar.isDate(day, equalTo: monthStart, toGranularity: .month)
+
+        return Button {
+            selectedDate = day
+            displayedMonth = day
+        } label: {
+            VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                Text("\(calendar.component(.day, from: day))")
+                    .font(AppTypography.caption.weight(isSelected ? .bold : .medium))
+                Spacer(minLength: 0)
+                if count > 0 {
+                    Label("\(count)", systemImage: "checkmark.circle.fill")
+                        .font(.system(size: 10, weight: .semibold))
+                        .lineLimit(1)
+                }
+            }
+            .foregroundStyle(dayForeground(isSelected: isSelected, isCurrentMonth: isCurrentMonth, hasCompletedTasks: count > 0))
+            .frame(maxWidth: .infinity, minHeight: 40, alignment: .topLeading)
+            .padding(AppSpacing.xxs)
+            .background(dayBackground(isSelected: isSelected, hasCompletedTasks: count > 0), in: RoundedRectangle(cornerRadius: AppRadius.small, style: .continuous))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(dayAccessibilityLabel(day, count: count))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private func moveMonth(by value: Int) {
+        displayedMonth = calendar.date(byAdding: .month, value: value, to: displayedMonth) ?? displayedMonth
+    }
+
+    private func dayForeground(isSelected: Bool, isCurrentMonth: Bool, hasCompletedTasks: Bool) -> Color {
+        if isSelected { return AppColors.primaryText }
+        if !isCurrentMonth { return AppColors.secondaryText.opacity(0.42) }
+        return hasCompletedTasks ? AppColors.task : AppColors.primaryText
+    }
+
+    private func dayBackground(isSelected: Bool, hasCompletedTasks: Bool) -> Color {
+        if isSelected { return AppColors.task.opacity(0.22) }
+        return hasCompletedTasks ? AppColors.task.opacity(0.10) : .clear
+    }
+
+    private func dayAccessibilityLabel(_ day: Date, count: Int) -> String {
+        let formattedDate = day.formatted(.dateTime.locale(Locale(identifier: "zh_CN")).year().month().day().weekday(.wide))
+        return count == 0 ? "\(formattedDate)，没有完成任务" : "\(formattedDate)，完成 \(count) 项任务"
+    }
 }
 
 struct TaskRow: View {
@@ -2361,7 +2634,7 @@ struct CalendarView: View {
                 if proxy.size.width >= 980 {
                     HSplitView {
                         calendarContent(presentInspectorOnMonthSelection: false)
-                            .frame(minWidth: 620, idealWidth: 760, maxWidth: .infinity, maxHeight: .infinity)
+                            .frame(minWidth: 460, maxWidth: .infinity, maxHeight: .infinity)
 
                         dayInspector
                             .frame(minWidth: 260, idealWidth: 320, maxWidth: 360, maxHeight: .infinity)
@@ -2403,7 +2676,7 @@ struct CalendarView: View {
     private func calendarContent(presentInspectorOnMonthSelection: Bool) -> some View {
         switch mode {
         case .month:
-            CalendarMonthContent(
+            MonthCalendarGrid(
                 date: $selectedDate,
                 journalEntries: journalEntries,
                 habits: displayedHabits,
@@ -2823,154 +3096,6 @@ private struct WeekCalendarItemCard: View {
     }
 }
 
-/// Gives the main month grid a persistent date navigator when the available
-/// width permits it. Both representations operate on the same selected date.
-private struct CalendarMonthContent: View {
-    @Binding var date: Date
-    let journalEntries: [JournalEntry]
-    let habits: [Habit]
-    let courses: [Course]
-    let events: [Event]
-    let tasks: [Task]
-    let exams: [Exam]
-    let onDateSelected: () -> Void
-
-    var body: some View {
-        GeometryReader { proxy in
-            if proxy.size.width >= 620 {
-                HStack(alignment: .top, spacing: AppSpacing.xs) {
-                    MiniMonthCalendarNavigator(date: $date)
-                        .frame(width: 160)
-                        .padding(.leading, AppSpacing.page)
-
-                    MonthCalendarGrid(
-                        date: $date,
-                        journalEntries: journalEntries,
-                        habits: habits,
-                        courses: courses,
-                        events: events,
-                        tasks: tasks,
-                        exams: exams,
-                        onDateSelected: onDateSelected
-                    )
-                }
-            } else {
-                MonthCalendarGrid(
-                    date: $date,
-                    journalEntries: journalEntries,
-                    habits: habits,
-                    courses: courses,
-                    events: events,
-                    tasks: tasks,
-                    exams: exams,
-                    onDateSelected: onDateSelected
-                )
-            }
-        }
-    }
-}
-
-/// Shared six-week month geometry keeps the main grid and the navigator
-/// perfectly aligned, including their Sunday/Monday start configuration.
-enum MonthCalendarLayout {
-    static func visibleDays(for date: Date, calendar: Calendar = .current) -> [Date] {
-        let monthStart = calendar.dateInterval(of: .month, for: date)?.start ?? date
-        let weekdayOffset = (calendar.component(.weekday, from: monthStart) - calendar.firstWeekday + 7) % 7
-        let gridStart = calendar.date(byAdding: .day, value: -weekdayOffset, to: monthStart) ?? monthStart
-
-        return (0..<42).compactMap { calendar.date(byAdding: .day, value: $0, to: gridStart) }
-    }
-
-    static func weekdaySymbols(calendar: Calendar = .current) -> [String] {
-        let symbols = ["日", "一", "二", "三", "四", "五", "六"]
-        let firstIndex = max(0, calendar.firstWeekday - 1)
-        return Array(symbols[firstIndex...]) + Array(symbols[..<firstIndex])
-    }
-}
-
-/// A compact, always-visible-in-normal-widths date picker for the month view.
-/// It intentionally uses native buttons rather than a second persisted state.
-private struct MiniMonthCalendarNavigator: View {
-    @Binding var date: Date
-    private let calendar = Calendar.current
-
-    var body: some View {
-        let monthStart = calendar.dateInterval(of: .month, for: date)?.start ?? date
-        let visibleDays = MonthCalendarLayout.visibleDays(for: date, calendar: calendar)
-        let columns = Array(repeating: GridItem(.flexible(minimum: 0), spacing: AppSpacing.xxs), count: 7)
-
-        VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            HStack(spacing: AppSpacing.xs) {
-                Button(action: { moveMonth(by: -1) }) {
-                    Image(systemName: "chevron.left")
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("上一月")
-
-                Text(monthStart.formatted(.dateTime.locale(Locale(identifier: "zh_CN")).year().month(.wide)))
-                    .font(AppTypography.caption.weight(.semibold))
-                    .foregroundStyle(AppColors.primaryText)
-                    .lineLimit(1)
-                    .frame(maxWidth: .infinity, alignment: .center)
-
-                Button(action: { moveMonth(by: 1) }) {
-                    Image(systemName: "chevron.right")
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("下一月")
-            }
-            .foregroundStyle(AppColors.secondaryText)
-
-            LazyVGrid(columns: columns, spacing: AppSpacing.xxs) {
-                ForEach(MonthCalendarLayout.weekdaySymbols(calendar: calendar), id: \.self) { symbol in
-                    Text(symbol)
-                        .font(.system(size: 9, weight: .semibold))
-                        .foregroundStyle(AppColors.secondaryText)
-                        .frame(maxWidth: .infinity)
-                }
-
-                ForEach(visibleDays, id: \.self) { day in
-                    Button {
-                        date = day
-                    } label: {
-                        Text("\(calendar.component(.day, from: day))")
-                            .font(.system(size: 10, weight: calendar.isDate(day, inSameDayAs: date) ? .bold : .regular, design: .rounded))
-                            .foregroundStyle(dayColor(for: day, monthStart: monthStart))
-                            .frame(maxWidth: .infinity, minHeight: 18)
-                            .background(selectionBackground(for: day), in: Circle())
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(day.formatted(.dateTime.locale(Locale(identifier: "zh_CN")).year().month().day().weekday(.wide)))
-                }
-            }
-        }
-        .padding(AppSpacing.sm)
-        .background(AppColors.surface.opacity(0.56), in: RoundedRectangle(cornerRadius: AppRadius.large, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: AppRadius.large, style: .continuous)
-                .stroke(AppColors.surfaceBorder, lineWidth: 1)
-        }
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("日期导航")
-    }
-
-    private func moveMonth(by value: Int) {
-        date = calendar.date(byAdding: .month, value: value, to: date) ?? date
-    }
-
-    private func dayColor(for day: Date, monthStart: Date) -> Color {
-        if calendar.isDate(day, inSameDayAs: date) { return AppColors.surface }
-        if !calendar.isDate(day, equalTo: monthStart, toGranularity: .month) { return AppColors.secondaryText.opacity(0.45) }
-        if calendar.isDateInToday(day) { return AppColors.accent }
-        return AppColors.primaryText
-    }
-
-    private func selectionBackground(for day: Date) -> Color {
-        calendar.isDate(day, inSameDayAs: date) ? AppColors.accent : .clear
-    }
-}
-
 /// Quiet monthly overview: a date is a life-status summary rather than a
 /// miniature agenda. Detailed items remain available from the day inspector.
 struct MonthCalendarGrid: View {
@@ -2986,8 +3111,10 @@ struct MonthCalendarGrid: View {
     var body: some View {
         let calendar = Calendar.current
         let monthStart = calendar.dateInterval(of: .month, for: date)?.start ?? date
-        let visibleDays = MonthCalendarLayout.visibleDays(for: date, calendar: calendar)
-        let weekdaySymbols = MonthCalendarLayout.weekdaySymbols(calendar: calendar)
+        let weekdayOffset = (calendar.component(.weekday, from: monthStart) - calendar.firstWeekday + 7) % 7
+        let gridStart = calendar.date(byAdding: .day, value: -weekdayOffset, to: monthStart) ?? monthStart
+        let visibleDays = (0..<42).compactMap { calendar.date(byAdding: .day, value: $0, to: gridStart) }
+        let weekdaySymbols = orderedWeekdaySymbols(calendar: calendar)
 
         GeometryReader { proxy in
             // A six-row grid keeps the month stable as the selected month
@@ -3053,6 +3180,11 @@ struct MonthCalendarGrid: View {
         }
     }
 
+    private func orderedWeekdaySymbols(calendar: Calendar) -> [String] {
+        let symbols = ["日", "一", "二", "三", "四", "五", "六"]
+        let firstIndex = max(0, calendar.firstWeekday - 1)
+        return Array(symbols[firstIndex...]) + Array(symbols[..<firstIndex])
+    }
 }
 
 private struct MonthCalendarDayCell: View {

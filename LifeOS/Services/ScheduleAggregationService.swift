@@ -365,6 +365,12 @@ enum ScheduleAggregationService {
         return TodayOverview(courseCount: courseCount, taskCount: dayTasks.count, eventCount: eventCount, completionRate: rate)
     }
 
+    /// Keeps an in-progress item visible until it ends, then selects the
+    /// next scheduled item for Today’s "接下来" summary.
+    static func currentOrNextItem(in items: [ScheduleItem], relativeTo date: Date = .now) -> ScheduleItem? {
+        items.first { ($0.endDate ?? $0.startDate) >= date }
+    }
+
     static func upcomingDeadlines(from date: Date, tasks: [Task], days: Int = 7, calendar: Calendar = .current) -> [Task] {
         guard let endDate = calendar.date(byAdding: .day, value: days, to: calendar.startOfDay(for: date)) else { return [] }
         return tasks.filter { task in

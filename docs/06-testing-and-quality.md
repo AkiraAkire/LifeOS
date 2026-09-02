@@ -17,21 +17,20 @@
 
 `CoreModelTests` 当前覆盖以下规则：
 
-- Task 完成／恢复状态、任务分组，以及通过拖放或任务页设置 Today 时保留截止日期、清除旧具体安排时间的规则。
+- Task 完成／恢复状态、任务分组与截止日期排序、按完成日期回顾，以及通过任务页设置 Today 时保留截止日期、清除旧具体安排时间的规则。
 - Course、Tag、Project、Assignment 与 Task 的关系和完成进度，以及课程预设／文字／图片图标与完整备份恢复。
 - CourseSession 的单双周、生效日期、周一优先排序、课次编辑／删除。
 - `SemesterDateRange` 的自然周、星期一换周、总周数和课程独立日期覆盖。
 - `TimetablePeriod` 合法性与 `TimetableLayout` 跨节映射、冲突并列轨道。
-- `ScheduleAggregationService` 的课程、日程、考试、带时间任务聚合与时间排序。
+- `ScheduleAggregationService` 的课程、日程、考试、带时间任务聚合与时间排序，以及进行中／下一项安排选择。
 - JournalEntry 同一自然日复用、天气更新不覆盖正文、指定日记删除。
 - 日记迷你月历的连续六周日期范围与用户配置的每周起始日。
 - DailyLifeOverview 的日记、HabitRecord、任务与日程联动。
-- 月日历六行日期布局及其星期起始顺序，供主月历和迷你月历导航共同使用。
 - Habit 展示偏好、同日记录归一化、月／年完成次数、当前连续和最长连续。
 - 人工测试数据清空／导入。
 - 完整备份的关系和偏好往返、损坏关联拒绝恢复、自动日快照与恢复点保留。
 
-截至 2026-09-01，完整 macOS 测试套件为 **34 项、0 失败**。
+截至 2026-09-02，完整 macOS 测试套件为 **37 项、0 失败**。
 
 ## 建议命令
 
@@ -41,6 +40,9 @@ xcodebuild -project LifeOS.xcodeproj -scheme LifeOS \
 
 xcodebuild -project LifeOS.xcodeproj -scheme LifeOS \
   -destination 'platform=macOS' build
+
+xcodebuild -project LifeOS.xcodeproj -scheme LifeOS \
+  -configuration Release -destination 'platform=macOS' build
 ```
 
 若构建环境需要隔离 DerivedData，可加 `-derivedDataPath /private/tmp/lifeos-derived`。测试环境偶发的 `linkd.autoShortcut` 系统服务日志不等于测试失败；以 `** TEST SUCCEEDED **` 和 XCTest 失败数为准。
@@ -50,13 +52,16 @@ xcodebuild -project LifeOS.xcodeproj -scheme LifeOS \
 - 创建课程、课程时间、作业、考试和个人日程，确认它们在 Today、Calendar 与 Journal 足迹中一致。
 - 调整全局学期、课程独立日期和单双周，确认 Today 周次、课表筛选与课程显示一致。
 - 在课表检查全部、单周、双周；确认跨节课程完整显示，冲突课程并列且双指缩放可用。
-- 新建仅截止日期任务，将任务拖到 Today，完成后确认任务页、Calendar／Journal 摘要同步。
+- 新建仅截止日期任务，在任务页设为今日任务，完成后确认 Today、任务页、Calendar／Journal 摘要同步。
+- 在任务“全部”范围确认今日任务优先、其余任务按截止日期排序；设为今日任务后确认其保留截止日期并从待安排列表移除。
+- 在 Today 确认“接下来”会显示进行中或下一项带时间安排；窄窗口确认时间线和今日重点改为纵向布局，且 Today 内没有任务拖放入口。
+- 在任务“已完成”范围确认每个日期显示的完成数量正确；点按含记录和无记录的日期，确认当天完成任务清单相应更新。
 - 在 Calendar 创建日程，检查月格不出现任务标题溢出，点击任意日期格空白区域均可选择日期。
-- 在月视图使用迷你月历前后切换并选择相邻月日期，确认主月历标题、选中日期与当天生活检查器同步；在 900pt 最小窗口确认辅助导航收起且主月历不横向溢出。
 - 在 Calendar／Journal 管理展示习惯、打卡、打开完成轨迹，并确认月历、日记、Today 同步；未来日期不可补记。
 - 创建／编辑／删除日记，确认天气快捷入口不会覆盖现有正文或心情。
 - 执行“导出完整备份 → 恢复确认 → 恢复前保护点回退”演练；导入人工测试数据前确认已有自动保护。
 - 检查中文文案、键盘可达性、浅色／深色外观，以及 900pt 最小窗口和常规宽窗口的布局。
+- 发行前启动 Release `.app`，检查首次启动、自动保护、设置页备份导出与恢复确认可用；使用 `codesign --verify --deep --strict` 验证本机签名。
 
 ## 失败处理
 

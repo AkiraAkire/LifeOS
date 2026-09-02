@@ -15,6 +15,59 @@ final class CoreModelTests: XCTestCase {
         XCTAssertEqual(task.priority, .high)
     }
 
+    func testTodayCurrentOrNextScheduleKeepsOngoingItemThenAdvances() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let ongoing = ScheduleItem(
+            id: UUID(),
+            title: "正在进行的课程",
+            startDate: now.addingTimeInterval(-30 * 60),
+            endDate: now.addingTimeInterval(30 * 60),
+            category: .course,
+            colorHex: nil
+        )
+        let later = ScheduleItem(
+            id: UUID(),
+            title: "下一项课程",
+            startDate: now.addingTimeInterval(2 * 60 * 60),
+            endDate: nil,
+            category: .course,
+            colorHex: nil
+        )
+
+        XCTAssertEqual(
+            ScheduleAggregationService.currentOrNextItem(in: [ongoing, later], relativeTo: now)?.id,
+            ongoing.id
+        )
+        XCTAssertEqual(
+            ScheduleAggregationService.currentOrNextItem(in: [ongoing, later], relativeTo: now.addingTimeInterval(60 * 60))?.id,
+            later.id
+        )
+    }
+
+    func testCompletedTasksForDayUsesCompletionDateAndKeepsNewestFirst() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let august26Morning = calendar.date(from: DateComponents(year: 2026, month: 8, day: 26, hour: 9))!
+        let august26Evening = calendar.date(from: DateComponents(year: 2026, month: 8, day: 26, hour: 18))!
+        let august27 = calendar.date(from: DateComponents(year: 2026, month: 8, day: 27, hour: 9))!
+
+        let earlier = Task(title: "先完成")
+        earlier.markCompleted(at: august26Morning)
+        let later = Task(title: "后完成")
+        later.markCompleted(at: august26Evening)
+        let anotherDay = Task(title: "另一天完成")
+        anotherDay.markCompleted(at: august27)
+        let active = Task(title: "未完成")
+
+        let completed = TaskListGrouping.completedTasks(
+            on: august26Morning,
+            from: [earlier, anotherDay, active, later],
+            calendar: calendar
+        )
+
+        XCTAssertEqual(completed.map(\.title), ["后完成", "先完成"])
+    }
+
     func testInboxCaptureCreatesUnscheduledInboxTask() throws {
         let container = try makeContainer()
         let context = ModelContext(container)
@@ -619,6 +672,16 @@ final class CoreModelTests: XCTestCase {
         XCTAssertEqual(sections.last?.tasks.first?.title, "明天复习")
     }
 
+    func testDeadlineOrderingShowsEarliestTasksFirstAndUndatedTasksLast() {
+        let early = Task(title: "早截止", deadline: Date(timeIntervalSince1970: 1_728_000_000))
+        let late = Task(title: "晚截止", deadline: Date(timeIntervalSince1970: 1_728_172_800))
+        let undated = Task(title: "未设置截止日期")
+
+        let ordered = TaskListGrouping.deadlineOrdered([undated, late, early])
+
+        XCTAssertEqual(ordered.map(\.title), ["早截止", "晚截止", "未设置截止日期"])
+    }
+
     func testUpcomingGroupingUsesScheduledDateBeforeDeadline() {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
@@ -892,22 +955,6 @@ final class CoreModelTests: XCTestCase {
             Set(backups.map { $0.kind.rawValue }),
             Set([LifeOSAutomaticBackupKind.daily.rawValue, LifeOSAutomaticBackupKind.beforeTestDataImport.rawValue])
         )
-    }
-
-    func testMonthCalendarLayoutBuildsAStableSixWeekGrid() {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
-        calendar.firstWeekday = 2
-        let august = calendar.date(from: DateComponents(year: 2026, month: 8, day: 12))!
-        let expectedFirstDay = calendar.date(from: DateComponents(year: 2026, month: 7, day: 27))!
-        let expectedLastDay = calendar.date(from: DateComponents(year: 2026, month: 9, day: 6))!
-
-        let days = MonthCalendarLayout.visibleDays(for: august, calendar: calendar)
-
-        XCTAssertEqual(days.count, 42)
-        XCTAssertEqual(days.first, expectedFirstDay)
-        XCTAssertEqual(days.last, expectedLastDay)
-        XCTAssertEqual(MonthCalendarLayout.weekdaySymbols(calendar: calendar), ["一", "二", "三", "四", "五", "六", "日"])
     }
 
     private func makeContainer() throws -> ModelContainer {

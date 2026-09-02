@@ -4,6 +4,7 @@
 # Xcode user and build artifacts
 DerivedData/
 build/
+dist/
 *.xcuserstate
 *.xcscmblueprint
 xcuserdata/

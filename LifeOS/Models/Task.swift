@@ -145,6 +145,36 @@ enum TaskListGrouping {
         }
     }
 
+    /// Keeps the action list predictable: dated work comes first and undated
+    /// items remain available at the end instead of disappearing from “全部”.
+    static func deadlineOrdered(_ tasks: [Task]) -> [Task] {
+        tasks.sorted { left, right in
+            let leftDeadline = left.deadline ?? .distantFuture
+            let rightDeadline = right.deadline ?? .distantFuture
+            if leftDeadline != rightDeadline { return leftDeadline < rightDeadline }
+
+            let titleOrder = left.title.localizedStandardCompare(right.title)
+            if titleOrder != .orderedSame { return titleOrder == .orderedAscending }
+            return left.id.uuidString < right.id.uuidString
+        }
+    }
+
+    /// Completed task history is derived from the durable completion timestamp,
+    /// so the calendar never needs to persist a duplicate daily summary.
+    static func completedTasks(on day: Date, from tasks: [Task], calendar: Calendar = .current) -> [Task] {
+        tasks
+            .filter { task in
+                task.status == .completed
+                    && task.completedAt.map { calendar.isDate($0, inSameDayAs: day) } == true
+            }
+            .sorted { left, right in
+                let leftDate = left.completedAt ?? .distantPast
+                let rightDate = right.completedAt ?? .distantPast
+                if leftDate != rightDate { return leftDate > rightDate }
+                return left.title.localizedStandardCompare(right.title) == .orderedAscending
+            }
+    }
+
     /// The date a person has actually arranged to work on the task.
     /// A precise start time must win over a date-only plan and a deadline;
     /// otherwise an Aug 26 task with an Aug 27 deadline would incorrectly
